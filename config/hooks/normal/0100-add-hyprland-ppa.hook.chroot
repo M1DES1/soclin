@@ -1,15 +1,81 @@
 #!/bin/bash
-# Add Hyprland PPA and other needed repositories
+# Build and install Hyprland from source for Ubuntu Noble
+# This bypasses the missing PPA by building from official Hyprland repo
 
 set -e
 
-echo "Adding Hyprland PPA..."
-add-apt-repository ppa:hyprland/hyprland -y 2>/dev/null || true
+echo "🔨 Building Hyprland from source..."
 
-echo "Adding Ubuntu Toolchain repository for Qt6..."
-add-apt-repository ppa:ubuntu-toolchain-r/ppa -y 2>/dev/null || true
+# ── Instaluj build dependencies ──────────────────────────────────────────────────
+apt-get install -y --no-install-recommends \
+    git \
+    cmake \
+    ninja-build \
+    pkg-config \
+    libwayland-dev \
+    wayland-protocols \
+    libxkbcommon-dev \
+    libdrm-dev \
+    libpam0g-dev \
+    libpipewire-0.3-dev \
+    libdbus-1-dev \
+    libxcb1-dev \
+    libegl1-mesa-dev \
+    libjemalloc-dev \
+    libxcb-composite0-dev \
+    libxcb-ewmh-dev \
+    libxcb-icccm4-dev \
+    libxcb-render-util0-dev \
+    libxcb-shape0-dev \
+    libxcb-util-dev \
+    libxcb-xfixes0-dev \
+    libxcb-xinerama0-dev \
+    libxcb-xkb-dev \
+    libxkbcommon-x11-dev \
+    xwayland \
+    -qq
 
-echo "Updating package lists..."
-apt-get update -qq
+# ── Build root directory ─────────────────────────────────────────────────────────
+BUILD_DIR="/tmp/hyprland-build"
+mkdir -p "$BUILD_DIR"
+cd "$BUILD_DIR"
 
-echo "PPAs added successfully"
+# ── Clone Hyprland repository ────────────────────────────────────────────────────
+echo "📥 Cloning Hyprland repository..."
+git clone --depth=1 https://github.com/hyprwm/Hyprland.git 2>&1 | grep -v "Cloning\|Unpacking"
+cd Hyprland
+
+# ── Build with CMake + Ninja ────────────────────────────────────────────────────
+echo "🏗️  Building Hyprland..."
+mkdir -p build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release -GNinja ..
+ninja
+
+# ── Install ──────────────────────────────────────────────────────────────────────
+echo "📦 Installing Hyprland..."
+ninja install
+
+# ── Build xdg-desktop-portal-hyprland from source ──────────────────────────────────
+echo "🔨 Building xdg-desktop-portal-hyprland..."
+cd "$BUILD_DIR"
+git clone --depth=1 https://github.com/hyprwm/xdg-desktop-portal-hyprland.git
+cd xdg-desktop-portal-hyprland
+mkdir -p build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release -GNinja ..
+ninja
+ninja install
+
+# ── Clean up ─────────────────────────────────────────────────────────────────────
+rm -rf "$BUILD_DIR"
+
+# ── Verify installation ──────────────────────────────────────────────────────────
+if command -v Hyprland &> /dev/null; then
+    echo "✅ Hyprland installed successfully at: $(which Hyprland)"
+else
+    echo "❌ Hyprland installation failed!"
+    exit 1
+fi
+
+echo "✅ Hyprland build hook completed successfully"
