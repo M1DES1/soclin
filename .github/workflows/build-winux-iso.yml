@@ -24,14 +24,13 @@ jobs:
           # The workflow expects an `iso/` directory at the repo root containing the ISO tree
           # (e.g. boot/, EFI/, grub/ etc.). If you don't have one, a minimal sample will be created
           if [ ! -d iso ]; then
-            echo "No iso/ directory found — creating a minimal sample ISO content. Replace this with your real ISO tree." 
+            echo "No iso/ directory found — creating a minimal sample ISO content. Replace this with your real ISO tree."
             mkdir -p iso/boot/grub
-            cat > iso/boot/grub/grub.cfg <<'GRUBCFG'
-set timeout=5
-menuentry "Hello WinUX (sample)" {
-  echo "This is a sample ISO. Replace iso/ with your real files to build a proper WinUX ISO."
-}
-GRUBCFG
+            # create grub.cfg without using a heredoc to avoid YAML parsing issues
+            echo 'set timeout=5' > iso/boot/grub/grub.cfg
+            echo 'menuentry "Hello WinUX (sample)" {' >> iso/boot/grub/grub.cfg
+            echo '  echo "This is a sample ISO. Replace iso/ with your real files to build a proper WinUX ISO."' >> iso/boot/grub/grub.cfg
+            echo '}' >> iso/boot/grub/grub.cfg
             echo "Sample WinUX ISO content" > iso/README.txt
           else
             echo "Found iso/ directory; using it as the ISO tree."
