@@ -1,0 +1,126 @@
+# ── System bazowy live ───────────────────────────────────────────────────────
+ubuntu-standard
+casper
+live-boot
+live-config
+systemd-resolved
+
+# ── Sieć ─────────────────────────────────────────────────────────────────────
+network-manager
+network-manager-gnome
+
+# ── Audio (PipeWire) ─────────────────────────────────────────────────────────
+wireplumber
+pipewire
+pipewire-audio
+pipewire-pulse
+pipewire-alsa
+libspa-0.2-bluetooth
+
+# ── Bluetooth ────────────────────────────────────────────────────────────────
+bluez
+blueman
+
+# ── Display manager ───────────────────────────────────────────────────────────
+sddm
+
+# ── Hyprland + Wayland (z PPA soumyadip007) ───────────────────────────────────
+hyprland
+xdg-desktop-portal
+xdg-desktop-portal-hyprland
+xdg-utils
+hyprpaper
+
+# ── Qt ───────────────────────────────────────────────────────────────────────
+qt6-wayland
+qt6ct
+qt5ct
+# kvantum i qt*-style-kvantum są z PPA papirus — instalowane przez hook
+
+# ── Menedżer plików ───────────────────────────────────────────────────────────
+thunar
+thunar-volman
+thunar-archive-plugin
+tumbler
+gvfs
+gvfs-backends
+udisks2
+avahi-daemon
+file-roller
+p7zip-full
+unzip
+unrar
+
+# ── Uwierzytelnianie / bezpieczeństwo ────────────────────────────────────────
+policykit-1-gnome
+gnome-keyring
+seahorse
+
+# ── Aplikacje użytkowe ────────────────────────────────────────────────────────
+firefox
+thunderbird
+vlc
+gnome-text-editor
+gnome-calculator
+eog
+pavucontrol
+
+# ── Wayland utilities ────────────────────────────────────────────────────────
+nm-tray
+wl-clipboard
+grim
+slurp
+cliphist
+wofi
+nwg-look
+
+# ── Wygląd ───────────────────────────────────────────────────────────────────
+lxappearance
+papirus-icon-theme
+gtk2-engines-murrine
+sassc
+
+# ── Czcionki ─────────────────────────────────────────────────────────────────
+fonts-inter
+fonts-noto
+fonts-noto-color-emoji
+fonts-cascadia-code
+
+# ── Wine ─────────────────────────────────────────────────────────────────────
+cabextract
+winetricks
+wine64
+lutris
+
+# ── Grafika / GPU ────────────────────────────────────────────────────────────
+mesa-utils
+mesa-vulkan-drivers
+libvulkan1
+
+# ── Build tools (potrzebne do hooków) ────────────────────────────────────────
+build-essential
+cmake
+ninja-build
+pkg-config
+python3
+python3-pip
+python3-build
+python3-installer
+python3-venv
+
+# ── Biblioteki dev (dla Quickshell) ──────────────────────────────────────────
+libwayland-dev
+wayland-protocols
+libxkbcommon-dev
+libdrm-dev
+libpam0g-dev
+libpipewire-0.3-dev
+libdbus-1-dev
+libxcb1-dev
+libegl1-mesa-dev
+
+# ── Narzędzia ogólne ─────────────────────────────────────────────────────────
+git
+curl
+wget
+jq
