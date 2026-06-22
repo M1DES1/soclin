@@ -1,20 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ── PPA i repozytoria ────────────────────────────────────────────────────────
+# ── Użytkownik ──────────────────────────────────────────────────────────────────
 export DEBIAN_FRONTEND=noninteractive
 
-apt-get install -y software-properties-common curl gpg
-
-# Hyprland PPA (Soumyadip Sarkar) — jedyne stabilne PPA dla Ubuntu Noble
-add-apt-repository -y ppa:soumyadip007/hyprland-wayland-ubuntu
-
-# Kvantum PPA
-add-apt-repository -y ppa:papirus/papirus
-
-apt-get update -qq
-
-# ── Użytkownik ───────────────────────────────────────────────────────────────
 useradd -m -s /bin/bash winux || true
 usermod -aG sudo,video,audio,render,input,plugdev,netdev winux || true
 chsh -s /bin/bash winux || true
@@ -23,18 +12,18 @@ chsh -s /bin/bash winux || true
 echo "winux ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/winux
 chmod 440 /etc/sudoers.d/winux
 
-# ── Usługi ───────────────────────────────────────────────────────────────────
+# ── Usługi ──────────────────────────────────────────────────────────────────────
 systemctl enable NetworkManager || true
 systemctl enable sddm || true
 
-# ── Katalogi konfiguracyjne ──────────────────────────────────────────────────
+# ── Katalogi konfiguracyjne ─────────────────────────────────────────────────────
 install -d -m 0755 /etc/skel/.config/qt6ct
 install -d -m 0755 /etc/skel/.config/Kvantum
 install -d -m 0755 /etc/skel/.config/hypr
 install -d -m 0755 /etc/skel/.config/systemd/user
 install -d -m 0755 /etc/skel/.config/autostart
 
-# ── Hyprland config (minimalna konfiguracja startowa) ────────────────────────
+# ── Hyprland config (minimalna konfiguracja startowa) ────────────────────────────
 cat > /etc/skel/.config/hypr/hyprland.conf <<'EOF'
 # Monitor
 monitor=,preferred,auto,1
