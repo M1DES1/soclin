@@ -1,0 +1,32 @@
+#!/bin/bash
+# PPA muszą być dostępne PRZED instalacją pakietów
+# Tego hooku używać do dodania PPA i aktualizacji
+
+set -e
+
+export DEBIAN_FRONTEND=noninteractive
+
+echo "📦 Adding PPAs and updating package lists..."
+
+# Zainstaluj narzędzia do dodawania PPA
+apt-get update -qq
+apt-get install -y software-properties-common curl gpg
+
+# Hyprland PPA (Soumyadip Sarkar) — najlepsze dla Ubuntu Noble
+echo "Adding Hyprland PPA (ppa:soumyadip007/hyprland-wayland-ubuntu)..."
+add-apt-repository -y ppa:soumyadip007/hyprland-wayland-ubuntu || {
+  echo "⚠️ Hyprland PPA failed, trying alternative..."
+  # Fallback na manual key dodawanie
+  curl -fsSL https://keyserver.ubuntu.com/pks/lookup?op=get\&search=0x59f5d31dfd2b2c9b09d7cdc8b2aff5695d60ab01 | gpg --dearmor | tee /usr/share/keyrings/hyprland-archive-keyring.gpg > /dev/null
+  echo "deb [signed-by=/usr/share/keyrings/hyprland-archive-keyring.gpg] http://ppa.launchpad.net/soumyadip007/hyprland-wayland-ubuntu/ubuntu noble main" | tee /etc/apt/sources.list.d/hyprland.list
+}
+
+# Kvantum + Qt PPA (papirus theme)
+echo "Adding Papirus/Kvantum PPA..."
+add-apt-repository -y ppa:papirus/papirus || true
+
+# Update package lists z nowymi PPA
+echo "Updating package lists with new PPAs..."
+apt-get update -qq || true
+
+echo "✅ PPAs configured successfully"
