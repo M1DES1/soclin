@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "=== [040] User finishing touches ==="
+
+# ── Copy skeleton to winux user ──────────────────────────
+install -d -m 0755 /home/winux/.config
+cp -a /etc/skel/. /home/winux/
+
+# ── Ensure wine wrapper is executable ────────────────────
+chmod +x /home/winux/.local/bin/wine-open-exe.sh 2>/dev/null || true
+chmod +x /etc/skel/.local/bin/wine-open-exe.sh 2>/dev/null || true
+
+# ── Set cursor theme system-wide ─────────────────────────
+mkdir -p /usr/share/icons/default
+cat > /usr/share/icons/default/index.theme << 'EOF'
+[Icon Theme]
+Name=Default
+Comment=Default Cursor Theme
+Inherits=Fluent-cursors
+EOF
+
+# ── Set default GTK/icon theme via alternatives ──────────
+update-alternatives --install /usr/share/icons/default/index.theme \
+  x-cursor-theme /usr/share/icons/Fluent-cursors/cursor.theme 90 2>/dev/null || true
+
+# ── Create XDG directories for winux user ────────────────
+for d in Pulpit Dokumenty Pobrane Muzyka Obrazy Publiczne Szablony Wideo; do
+  install -d -m 0755 -o winux -g winux "/home/winux/$d"
+done
+
+# ── Fix ownership ────────────────────────────────────────
+chown -R winux:winux /home/winux
+
+# ── Clean build artifacts ────────────────────────────────
+rm -rf /opt/src 2>/dev/null || true
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+rm -rf /tmp/* /var/tmp/*
+
+echo "=== [040] Done ==="
