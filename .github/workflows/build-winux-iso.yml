@@ -1,0 +1,62 @@
+name: Build WinUX ISO
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          # install xorriso and grub tools used to create a bootable ISO
+          sudo apt-get install -y xorriso grub2-common grub-pc-bin grub-efi-amd64-bin mtools || true
+
+      - name: Prepare ISO source (if missing)
+        run: |
+          # The workflow expects an `iso/` directory at the repo root containing the ISO tree
+          # (e.g. boot/, EFI/, grub/ etc.). If you don't have one, a minimal sample will be created
+          if [ ! -d iso ]; then
+            echo "No iso/ directory found — creating a minimal sample ISO content. Replace this with your real ISO tree." 
+            mkdir -p iso/boot/grub
+            cat > iso/boot/grub/grub.cfg <<'GRUBCFG'
+set timeout=5
+menuentry "Hello WinUX (sample)" {
+  echo "This is a sample ISO. Replace iso/ with your real files to build a proper WinUX ISO."
+}
+GRUBCFG
+            echo "Sample WinUX ISO content" > iso/README.txt
+          else
+            echo "Found iso/ directory; using it as the ISO tree."
+          fi
+
+      - name: Build bootable ISO (grub-mkrescue or fallback)
+        run: |
+          set -e
+          echo "Attempting to create a bootable ISO with grub-mkrescue..."
+          # Try grub-mkrescue first (creates an EFI+BIOS bootable ISO when proper files exist)
+          if command -v grub-mkrescue >/dev/null 2>&1; then
+            if grub-mkrescue -o winux.iso iso 2>/tmp/grub-mkrescue.log; then
+              echo "Created winux.iso with grub-mkrescue"
+            else
+              echo "grub-mkrescue failed; falling back to xorriso packaging (non-bootable)." && cat /tmp/grub-mkrescue.log || true
+              xorriso -as mkisofs -o winux.iso -J -r iso
+            fi
+          else
+            echo "grub-mkrescue not found; using xorriso to create ISO (non-bootable)."
+            xorriso -as mkisofs -o winux.iso -J -r iso
+          fi
+          ls -lh winux.iso
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: winux-iso
+          path: winux.iso
