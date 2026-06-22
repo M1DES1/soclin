@@ -24,10 +24,16 @@ jobs:
             | xargs dos2unix --quiet 2>/dev/null || true
           dos2unix auto/config || true
 
-      # ── 2. Zainstaluj live-build i zależności ───────────────────────────────
+      # ── 2. Czyszczenie cache apt i update
+      - name: Clean apt cache and update
+        run: |
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+          sudo apt-get update -qq
+
+      # ── 2b. Zainstaluj live-build i zależności ───────────────────────────────
       - name: Install live-build and dependencies
         run: |
-          sudo apt-get update -qq
           sudo apt-get install -y \
             live-build \
             debootstrap \
@@ -39,15 +45,15 @@ jobs:
             dosfstools \
             isolinux \
             syslinux-common \
-            --no-install-recommends
+            --no-install-recommends -qq
 
       # ── 3. Skonfiguruj live-build ────────────────────────────────────────────
       - name: Configure live-build (lb config)
         run: |
           chmod +x auto/config
-          sudo bash auto/config
+          sudo bash auto/config 2>&1 | tee /tmp/lb-config.log
 
-      # ── 4. Zbuduj ISO ────────────────────────────────────────────────────────
+      # ── 4. Zbuduj ISO ───────────────────────────────────────────────────────
       # lb build robi: bootstrap → chroot (hooki) → binary (ISO)
       - name: Build ISO (lb build)
         run: |
@@ -62,8 +68,11 @@ jobs:
         run: |
           ISO=$(find . -maxdepth 2 -name "*.iso" | head -n1)
           if [ -z "$ISO" ]; then
-            echo "❌ Nie znaleziono ISO! Ostatnie 50 linii loga:"
-            tail -50 /tmp/lb-build.log
+            echo "❌ Nie znaleziono ISO! Ostatnie 100 linii loga:"
+            tail -100 /tmp/lb-build.log
+            echo ""
+            echo "📋 Logi konfiguracji:"
+            tail -50 /tmp/lb-config.log || true
             exit 1
           fi
           echo "iso_path=$ISO" >> $GITHUB_OUTPUT
@@ -84,5 +93,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-log
-          path: /tmp/lb-build.log
+          path: |
+            /tmp/lb-build.log
+            /tmp/lb-config.log
           retention-days: 3
