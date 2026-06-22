@@ -5,11 +5,11 @@ live-boot
 live-config
 systemd-resolved
 
-# ── Sieć ─────────────────────────────────────────────────────────────────────
+# ── Sieć ──────────────────────────────────────────────────────────────────────
 network-manager
 network-manager-gnome
 
-# ── Audio (PipeWire) ─────────────────────────────────────────────────────────
+# ── Audio (PipeWire) ──────────────────────────────────────────────────────────
 wireplumber
 pipewire
 pipewire-audio
@@ -17,11 +17,11 @@ pipewire-pulse
 pipewire-alsa
 libspa-0.2-bluetooth
 
-# ── Bluetooth ────────────────────────────────────────────────────────────────
+# ── Bluetooth ──────────────────────────────────────────────────────────────────
 bluez
 blueman
 
-# ── Display manager ───────────────────────────────────────────────────────────
+# ── Display manager ────────────────────────────────────────────────────────────
 sddm
 
 # ── Hyprland + Wayland (z PPA soumyadip007) ───────────────────────────────────
@@ -30,14 +30,21 @@ xdg-desktop-portal
 xdg-desktop-portal-hyprland
 xdg-utils
 hyprpaper
+nwg-look
 
-# ── Qt ───────────────────────────────────────────────────────────────────────
+# ── Qt ─────────────────────────────────────────────────────────────────────────
 qt6-wayland
+qt6-base-dev
+qt6-declarative-dev
+qt6-svg-dev
+qt6-shadertools-dev
 qt6ct
 qt5ct
-# kvantum i qt*-style-kvantum są z PPA papirus — instalowane przez hook
+kvantum
+qt5-style-kvantum
+qt6-style-kvantum
 
-# ── Menedżer plików ───────────────────────────────────────────────────────────
+# ── Menedżer plików ────────────────────────────────────────────────────────────
 thunar
 thunar-volman
 thunar-archive-plugin
@@ -51,12 +58,12 @@ p7zip-full
 unzip
 unrar
 
-# ── Uwierzytelnianie / bezpieczeństwo ────────────────────────────────────────
+# ── Uwierzytelnianie / bezpieczeństwo ──────────────────────────────────────────
 policykit-1-gnome
 gnome-keyring
 seahorse
 
-# ── Aplikacje użytkowe ────────────────────────────────────────────────────────
+# ── Aplikacje użytkowe ─────────────────────────────────────────────────────────
 firefox
 thunderbird
 vlc
@@ -65,39 +72,38 @@ gnome-calculator
 eog
 pavucontrol
 
-# ── Wayland utilities ────────────────────────────────────────────────────────
+# ── Wayland utilities ──────────────────────────────────────────────────────────
 nm-tray
 wl-clipboard
 grim
 slurp
 cliphist
 wofi
-nwg-look
 
-# ── Wygląd ───────────────────────────────────────────────────────────────────
+# ── Wygląd ────────────────────────────────────────────────────────────────────
 lxappearance
 papirus-icon-theme
 gtk2-engines-murrine
 sassc
 
-# ── Czcionki ─────────────────────────────────────────────────────────────────
+# ── Czcionki ──────────────────────────────────────────────────────────────────
 fonts-inter
 fonts-noto
 fonts-noto-color-emoji
 fonts-cascadia-code
 
-# ── Wine ─────────────────────────────────────────────────────────────────────
+# ── Wine ──────────────────────────────────────────────────────────────────────
 cabextract
 winetricks
 wine64
 lutris
 
-# ── Grafika / GPU ────────────────────────────────────────────────────────────
+# ── Grafika / GPU ─────────────────────────────────────────────────────────────
 mesa-utils
 mesa-vulkan-drivers
 libvulkan1
 
-# ── Build tools (potrzebne do hooków) ────────────────────────────────────────
+# ── Build tools (potrzebne do hooków) ─────────────────────────────────────────
 build-essential
 cmake
 ninja-build
@@ -107,8 +113,10 @@ python3-pip
 python3-build
 python3-installer
 python3-venv
+software-properties-common
 
-# ── Biblioteki dev (dla Quickshell) ──────────────────────────────────────────
+# ── Biblioteki dev (dla Quickshell) ────────────────────────────────────────────
+libcli11-dev
 libwayland-dev
 wayland-protocols
 libxkbcommon-dev
@@ -118,8 +126,9 @@ libpipewire-0.3-dev
 libdbus-1-dev
 libxcb1-dev
 libegl1-mesa-dev
+libjemalloc-dev
 
-# ── Narzędzia ogólne ─────────────────────────────────────────────────────────
+# ── Narzędzia ogólne ──────────────────────────────────────────────────────────
 git
 curl
 wget
