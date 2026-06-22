@@ -1,0 +1,15 @@
+#!/bin/bash
+# Add Hyprland PPA and other needed repositories
+
+set -e
+
+echo "Adding Hyprland PPA..."
+add-apt-repository ppa:hyprland/hyprland -y 2>/dev/null || true
+
+echo "Adding Ubuntu Toolchain repository for Qt6..."
+add-apt-repository ppa:ubuntu-toolchain-r/ppa -y 2>/dev/null || true
+
+echo "Updating package lists..."
+apt-get update -qq
+
+echo "PPAs added successfully"
