@@ -54,6 +54,8 @@ cat <<EOF > /etc/sddm.conf.d/autologin.conf
 User=live
 Session=openbox
 EOF
+systemctl disable gdm3 || true
+ln -sf /lib/systemd/system/sddm.service /etc/systemd/system/display-manager.service
 systemctl enable sddm
 
 # Wyłączenie sprawdzania sum kontrolnych na starcie (psuje boot customowego ISO)
