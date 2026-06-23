@@ -1,0 +1,34 @@
+name: Build Winux ISO
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin mtools
+          
+      - name: Build ISO
+        run: |
+          chmod +x build-iso.sh
+          # Build process requires root for chroot and debootstrap
+          sudo ./build-iso.sh
+          
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: winux-iso
+          # Spodziewana nazwa to siemaos-DATA.iso zdefiniowana w skrypcie
+          path: iso_build/*.iso
