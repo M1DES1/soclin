@@ -16,7 +16,7 @@ apt-get upgrade -y
 
 # 1. Instalacja podstawowych pakietów środowiska i kernela
 apt-get install -y linux-image-generic linux-headers-generic initramfs-tools casper sudo \
-    locales nano wget curl git dbus systemd-sysv network-manager
+    locales nano wget curl git dbus systemd-sysv network-manager plymouth plymouth-theme-script plymouth-label
 
 locale-gen en_US.UTF-8
 update-locale LANG=en_US.UTF-8
@@ -26,18 +26,48 @@ apt-get install -y xserver-xorg xinit openbox sddm calamares calamares-settings-
     xserver-xorg-video-fbdev xserver-xorg-video-vesa \
     pavucontrol network-manager-gnome virtualbox-guest-x11 virtualbox-guest-utils
 
+# Branding systemu bazowego
+cat <<EOF > /etc/os-release
+PRETTY_NAME="soclin"
+NAME="soclin"
+VERSION_ID="24.04"
+VERSION="24.04"
+VERSION_CODENAME=noble
+ID=soclin
+ID_LIKE=ubuntu
+HOME_URL="https://soclin.local/"
+SUPPORT_URL="https://soclin.local/"
+BUG_REPORT_URL="https://soclin.local/"
+PRIVACY_POLICY_URL="https://soclin.local/"
+UBUNTU_CODENAME=noble
+LOGO=distributor-logo
+EOF
+cp /etc/os-release /usr/lib/os-release
+cat <<EOF > /etc/lsb-release
+DISTRIB_ID=soclin
+DISTRIB_RELEASE=24.04
+DISTRIB_CODENAME=noble
+DISTRIB_DESCRIPTION="soclin"
+EOF
+
 # Kopiowanie motywu Hyprland do użytku po instalacji
 mkdir -p /etc/skel/.config/hypr
 cp /root/config/hypr/hyprland.conf /etc/skel/.config/hypr/hyprland.conf
 cp /root/config/mimeapps.list /etc/skel/.config/
 
 # Instalator Calamares i branding
-mkdir -p /etc/calamares/branding/winux /etc/calamares/modules
-cp -r /root/config/calamares/branding/winux/. /etc/calamares/branding/winux/
+mkdir -p /etc/calamares/branding/soclin /etc/calamares/modules
+cp -r /root/config/calamares/branding/soclin/. /etc/calamares/branding/soclin/
 cp -r /root/config/calamares/modules/. /etc/calamares/modules/
 cp /root/config/calamares/settings.conf /etc/calamares/settings.conf
 
-cat <<'EOF' > /usr/local/bin/winux-launch-installer
+# Customowy splash bootowania
+mkdir -p /usr/share/plymouth/themes/soclin
+cp -r /root/config/plymouth/. /usr/share/plymouth/themes/soclin/
+update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/soclin/soclin.plymouth 100
+update-alternatives --set default.plymouth /usr/share/plymouth/themes/soclin/soclin.plymouth
+
+cat <<'EOF' > /usr/local/bin/soclin-launch-installer
 #!/bin/bash
 set -e
 sleep 2
@@ -46,47 +76,52 @@ if pgrep -x calamares >/dev/null; then
 fi
 exec calamares --fullscreen
 EOF
-chmod +x /usr/local/bin/winux-launch-installer
-
-# Openbox Autostart (odpala pełny instalator przy pierwszym włączeniu live)
-mkdir -p /etc/skel/.config/openbox
-cat <<EOF > /etc/skel/.config/openbox/autostart
-# Uruchom instalator w sesji live bez pokazywania technicznego konta "live".
-/usr/local/bin/winux-launch-installer &
-EOF
-
-mkdir -p /etc/skel/Desktop
-cat <<'EOF' > /etc/skel/Desktop/Install-Winux.desktop
-[Desktop Entry]
-Type=Application
-Name=Install Winux OS
-Comment=Launch the Winux OS installer
-Exec=/usr/local/bin/winux-launch-installer
-Icon=system-software-install
-Terminal=false
-Categories=System;
-EOF
-chmod +x /etc/skel/Desktop/Install-Winux.desktop
+chmod +x /usr/local/bin/soclin-launch-installer
 
 # 7. Utworzenie technicznego usera Live dla sesji instalatora
 useradd -m -s /bin/bash -G sudo,video,audio,plugdev,netdev live
 echo "live:live" | chpasswd
-echo "live ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+cat <<EOF > /etc/sudoers.d/live-nopasswd
+live ALL=(ALL) NOPASSWD: ALL
+EOF
+chmod 440 /etc/sudoers.d/live-nopasswd
 
-# SDDM Auto-login do Openbox
-mkdir -p /etc/sddm.conf.d
-cat <<EOF > /etc/sddm.conf.d/display.conf
-[General]
-DisplayServer=x11
+# Live start bez menedzera logowania: getty -> autologin -> startx -> openbox -> calamares
+mkdir -p /etc/systemd/system/getty@tty1.service.d
+cat <<EOF > /etc/systemd/system/getty@tty1.service.d/autologin.conf
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin live --noclear %I \$TERM
+Type=simple
 EOF
-cat <<EOF > /etc/sddm.conf.d/autologin.conf
-[Autologin]
-User=live
-Session=openbox.desktop
+systemctl disable sddm || true
+rm -f /etc/systemd/system/display-manager.service
+
+mkdir -p /home/live/.config/openbox /home/live/Desktop
+cat <<'EOF' > /home/live/.config/openbox/autostart
+/usr/local/bin/soclin-launch-installer &
 EOF
-systemctl disable gdm3 || true
-ln -sf /lib/systemd/system/sddm.service /etc/systemd/system/display-manager.service
-systemctl enable sddm
+cat <<'EOF' > /home/live/.xinitrc
+#!/bin/sh
+exec openbox-session
+EOF
+cat <<'EOF' > /home/live/.bash_profile
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+    exec startx
+fi
+EOF
+cat <<'EOF' > /home/live/Desktop/Install-soclin.desktop
+[Desktop Entry]
+Type=Application
+Name=Install soclin
+Comment=Launch the soclin installer
+Exec=/usr/local/bin/soclin-launch-installer
+Icon=system-software-install
+Terminal=false
+Categories=System;
+EOF
+chmod +x /home/live/.xinitrc /home/live/Desktop/Install-soclin.desktop
+chown -R live:live /home/live
 
 # Wyłączenie sprawdzania sum kontrolnych na starcie (psuje boot customowego ISO)
 rm -f /usr/lib/systemd/system/casper-md5check.service

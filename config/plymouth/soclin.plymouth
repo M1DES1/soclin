@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=soclin
+Description=Custom soclin splash screen
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/soclin
+ScriptFile=/usr/share/plymouth/themes/soclin/soclin.script

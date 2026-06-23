@@ -1,6 +1,6 @@
 #!/bin/bash
 
-zenity --info --title="Winux-OS Installer" --text="Rozpoczynam instalację Hyprland, motywów Windows 11 i środowiska Wine. \n\nProszę czekać, może to potrwać kilkanaście minut na połączenie z internetem i pobieranie paczek." --width=400
+zenity --info --title="soclin Installer" --text="Rozpoczynam instalację Hyprland, motywów Windows 11 i środowiska Wine. \n\nProszę czekać, może to potrwać kilkanaście minut na połączenie z internetem i pobieranie paczek." --width=400
 
 # Włączenie repozytoriów jeżeli system działa z RAMu
 apt-get update
@@ -76,7 +76,7 @@ NoDisplay=true
 EOF
 chown -R live:live /home/live/.local/
 
-zenity --info --title="Instalacja Zakończona" --text="System Winux-OS z Hyprland jest gotowy. \n\nInstalator uruchomi system ponownie by odpalić środowisko Winux." --width=400
+zenity --info --title="Instalacja Zakończona" --text="System soclin z Hyprland jest gotowy. \n\nInstalator uruchomi system ponownie by odpalić środowisko soclin." --width=400
 
 # Zrestartuj aby wbiło menedżera logowania bezposródnio do Hyprland
 reboot

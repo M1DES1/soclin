@@ -1,0 +1,21 @@
+Window.SetBackgroundTopColor(0.02, 0.05, 0.09);
+Window.SetBackgroundBottomColor(0.06, 0.15, 0.34);
+
+screen_w = Window.GetWidth();
+screen_h = Window.GetHeight();
+
+logo = Image.Text("soclin", 1, 1, 1);
+subtitle = Image.Text("loading installer", 0.75, 0.86, 0.98);
+
+logo_sprite = Sprite(logo);
+subtitle_sprite = Sprite(subtitle);
+
+fun refresh_callback ()
+{
+    logo_sprite.SetX(screen_w / 2 - logo.GetWidth() / 2);
+    logo_sprite.SetY(screen_h / 2 - logo.GetHeight());
+    subtitle_sprite.SetX(screen_w / 2 - subtitle.GetWidth() / 2);
+    subtitle_sprite.SetY(screen_h / 2 + 26);
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);

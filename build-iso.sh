@@ -3,7 +3,7 @@ set -ex
 
 # Zmienne środowiskowe
 export DEBIAN_FRONTEND=noninteractive
-export ISO_NAME="siemaos"
+export ISO_NAME="soclin"
 export WORKDIR="$(pwd)/iso_build"
 export ROOTFS="$WORKDIR/chroot"
 export ISO_DIR="$WORKDIR/iso"
@@ -16,7 +16,7 @@ mkdir -p "$ISO_DIR/casper"
 mkdir -p "$ISO_DIR/boot/grub"
 
 # 2. Budowa bazowego systemu (Ubuntu Noble 24.04)
-echo "=== Instalowanie Ubuntu base (debootstrap) ==="
+echo "=== Instalowanie bazowego systemu Noble ==="
 debootstrap --arch=amd64 noble "$ROOTFS" http://archive.ubuntu.com/ubuntu/
 
 # Zamontowanie systemów plików wewnątrz chroot
@@ -30,8 +30,8 @@ cp chroot-setup.sh "$ROOTFS/root/"
 chmod +x "$ROOTFS/root/chroot-setup.sh"
 cp -r config "$ROOTFS/root/"
 
-# Skopiowanie repo winux do ewentualnych źródeł (opcjonalne)
-# cp -r . "$ROOTFS/root/winux-repo"
+# Skopiowanie repo soclin do ewentualnych źródeł (opcjonalne)
+# cp -r . "$ROOTFS/root/soclin-repo"
 
 echo "=== Uruchamianie chroot-setup.sh ==="
 chroot "$ROOTFS" /bin/bash /root/chroot-setup.sh
@@ -61,12 +61,12 @@ printf $(du -sx --block-size=1 "$ROOTFS" | cut -f1) > "$ISO_DIR/casper/filesyste
 cat <<EOF > "$ISO_DIR/boot/grub/grub.cfg"
 set default="0"
 set timeout=5
-menuentry "SiemaOS (Safe Graphics)" {
-    linux /boot/vmlinuz boot=casper nomodeset username=live hostname=siemaos quiet splash ---
+menuentry "soclin (Safe Graphics)" {
+    linux /boot/vmlinuz boot=casper nomodeset username=live hostname=soclin quiet splash ---
     initrd /boot/initrd.img
 }
-menuentry "SiemaOS (Windows 11 Edition)" {
-    linux /boot/vmlinuz boot=casper username=live hostname=siemaos quiet splash ---
+menuentry "soclin" {
+    linux /boot/vmlinuz boot=casper username=live hostname=soclin quiet splash ---
     initrd /boot/initrd.img
 }
 EOF

@@ -1,4 +1,4 @@
-# Winux-ISO (Linux Base)
+# soclin-iso (Linux Base)
 
 W pełni funkcjonalny, startowy obraz Linuksa (Live ISO na bazie Ubuntu) upodobniony do systemu Windows 11. 
 Budowany od podstaw przy pomocy skryptu `debootstrap` w środowisku GitHub Actions.
@@ -16,7 +16,7 @@ Budowany od podstaw przy pomocy skryptu `debootstrap` w środowisku GitHub Actio
 Nasz projekt używa **GitHub Actions**, aby samodzielnie wygenerować obraz `.iso`.
 1. Wejdź do zakładki **Actions** tego repozytorium.
 2. Otwórz u góry najnowszy *Workflow run*.
-3. Pobierz `winux-iso` z sekcji Artifacts na samym dole.
+3. Pobierz `soclin` z sekcji Artifacts na samym dole.
 4. Wyodrębnij `.zip` - otworzy się gotowe `.iso`.
 
 ### Budowanie Lokalne
@@ -26,7 +26,7 @@ Instrukcja zoptymalizowana pod natywnego Linuksa (lub WSL2 z odpowiednimi narzę
 2. Otwórz projekt w konsoli.
 3. Wpisz komendę: `sudo ./build-iso.sh`
 4. Czekaj (proces ściągania źródeł i paczek ubuntu potrwa dłuższą chwilę).
-5. Wynikiem będzie plik `siemaos-data.iso` dostępny w bieżącym pliku.
+5. Wynikiem będzie plik `soclin-YYYYMMDD.iso` dostępny w bieżącym katalogu.
 
 ## Uruchomienie ISO
 

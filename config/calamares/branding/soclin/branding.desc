@@ -1,0 +1,36 @@
+---
+componentName: soclin
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+windowExpanding: fullscreen
+windowPlacement: center
+sidebar: widget
+navigation: widget
+strings:
+    productName: "soclin"
+    shortProductName: "soclin"
+    version: "24.04"
+    shortVersion: "24.04"
+    versionedName: "soclin 24.04"
+    shortVersionedName: "soclin 24.04"
+    bootloaderEntryName: "soclin"
+    productUrl: ""
+    supportUrl: ""
+    knownIssuesUrl: ""
+    releaseNotesUrl: ""
+    donateUrl: ""
+images:
+    productIcon: "logo.svg"
+    productLogo: "logo.svg"
+    productWallpaper: "wallpaper.svg"
+    productWelcome: "welcome.svg"
+style:
+    SidebarBackground: "#0f172a"
+    SidebarText: "#cbd5e1"
+    SidebarTextCurrent: "#ffffff"
+    SidebarBackgroundCurrent: "#2563eb"
+slideshow:
+    - "slideshow/step1.svg"
+    - "slideshow/step2.svg"
+    - "slideshow/step3.svg"
+
