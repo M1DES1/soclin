@@ -50,7 +50,9 @@ PRIVACY_POLICY_URL="https://soclin.local/"
 UBUNTU_CODENAME=noble
 LOGO=distributor-logo
 EOF
-cp /etc/os-release /usr/lib/os-release
+if [ ! /etc/os-release -ef /usr/lib/os-release ]; then
+    cp /etc/os-release /usr/lib/os-release
+fi
 cat <<EOF > /etc/lsb-release
 DISTRIB_ID=soclin
 DISTRIB_RELEASE=24.04
