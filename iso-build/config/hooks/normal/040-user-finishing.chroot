@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-install -d -m 0755 /home/winux/.config
-cp -a /etc/skel/. /home/winux/
-chown -R winux:winux /home/winux
-
-su - winux -c 'systemctl --user enable wine-prefix-prepare.service' || true
