@@ -24,7 +24,7 @@ update-locale LANG=en_US.UTF-8
 # 2. Instalacja absolutnego minimum z GUI, żeby pokazać okno instalacji po zbotowaniu
 # Użyjemy Openbox i Kitty. Zenity pomoże pokazać okienko powitalne.
 apt-get install -y xserver-xorg xinit openbox kitty zenity sddm \
-    pavucontrol network-manager-gnome
+    pavucontrol network-manager-gnome virtualbox-guest-x11 virtualbox-guest-utils
 
 # Kopiowanie motywu Hyprland do użytku po instalacji
 mkdir -p /etc/skel/.config/hypr

@@ -62,7 +62,7 @@ cat <<EOF > "$ISO_DIR/boot/grub/grub.cfg"
 set default="0"
 set timeout=5
 menuentry "SiemaOS (Windows 11 Edition)" {
-    linux /boot/vmlinuz boot=casper quiet splash ---
+    linux /boot/vmlinuz boot=casper username=live hostname=siemaos nomodeset quiet splash ---
     initrd /boot/initrd.img
 }
 EOF
