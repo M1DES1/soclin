@@ -28,7 +28,7 @@ apt-get install -y xserver-xorg xinit openbox kitty zenity sddm \
 
 # Kopiowanie motywu Hyprland do użytku po instalacji
 mkdir -p /etc/skel/.config/hypr
-cp /root/config/hyprland.conf /etc/skel/.config/hypr/hyprland.conf
+cp /root/config/hypr/hyprland.conf /etc/skel/.config/hypr/hyprland.conf
 cp /root/config/mimeapps.list /etc/skel/.config/
 
 # Iniekcja Skryptu Instalacyjnego do autostartu
