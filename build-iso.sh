@@ -69,6 +69,7 @@ EOF
 
 # 7. Budowanie pliku ISO za pomocą xorriso-dd-target / grub-mkrescue
 echo "=== Generowanie pliku ISO ==="
+(cd "$ISO_DIR" && find . -type f -not -name md5sum.txt -print0 | xargs -0 md5sum > md5sum.txt)
 grub-mkrescue -o "${ISO_NAME}-${DATE}.iso" "$ISO_DIR"
 
 echo "=== Gotowe: ${ISO_NAME}-${DATE}.iso ==="

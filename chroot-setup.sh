@@ -55,6 +55,10 @@ User=live
 Session=openbox
 EOF
 
+# Wyłączenie sprawdzania sum kontrolnych na starcie (psuje boot customowego ISO)
+rm -f /usr/lib/systemd/system/casper-md5check.service
+rm -f /etc/systemd/system/multi-user.target.wants/casper-md5check.service
+
 # Czyszczenie na koniec ISO buildu
 apt-get clean
 rm -rf /var/lib/apt/lists/*
