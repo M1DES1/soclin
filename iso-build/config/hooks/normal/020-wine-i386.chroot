@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "=== [020] Wine i386 + exe association setup ==="
+
+# ── Add i386 architecture and install 32-bit Wine ────────
+dpkg --add-architecture i386
+apt-get update
+apt-get install -y --no-install-recommends \
+  wine32 libc6:i386 libgl1:i386 libglib2.0-0:i386 \
+  libgnutls30:i386 libasound2-plugins:i386 libpulse0:i386
+
+# ── MIME type associations for .exe ──────────────────────
+update-desktop-database /usr/share/applications || true
+
+# Make wine-exe.desktop the default for all PE MIME types
+for mime in \
+  application/x-ms-dos-executable \
+  application/x-msdownload \
+  application/vnd.microsoft.portable-executable \
+  application/exe \
+  application/x-executable \
+  application/x-dosexec; do
+    xdg-mime default wine-exe.desktop "$mime" 2>/dev/null || true
+done
+
+# ── binfmt_misc for kernel-level .exe interception ───────
+mkdir -p /etc/binfmt.d
+cat > /etc/binfmt.d/wine.conf << 'EOF'
+:DOSWin:M::MZ::/usr/bin/wine:
+EOF
+
+# ── Pre-create minimal Wine prefix in skel ───────────────
+# This speeds up first .exe launch — user gets a ready prefix
+export WINEPREFIX="/etc/skel/.wine"
+export WINEDEBUG="-all"
+export DISPLAY=:0
+
+# Try wineboot; in chroot this may fail (no X), that's OK
+timeout 60 wineboot --init 2>/dev/null || true
+
+# Kill any leftover Wine processes
+wineserver -k 2>/dev/null || true
+
+# Make prefix usable by any user who gets skel copied
+chmod -R a+rX /etc/skel/.wine 2>/dev/null || true
+
+echo "=== [020] Done ==="

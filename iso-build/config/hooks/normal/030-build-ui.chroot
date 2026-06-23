@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "=== [030] Build UI components ==="
+
+# ── Install build-time deps (will be purged at end) ──────
+BUILD_DEPS="build-essential cmake ninja-build pkg-config \
+  sassc python3-pip python3-build python3-installer python3-venv \
+  qt6-base-dev qt6-declarative-dev qt6-svg-dev qt6-shadertools-dev \
+  libcli11-dev libwayland-dev wayland-protocols libxkbcommon-dev \
+  libdrm-dev libpam0g-dev libpipewire-0.3-dev libdbus-1-dev \
+  libxcb1-dev libegl1-mesa-dev libjemalloc-dev"
+
+apt-get install -y --no-install-recommends $BUILD_DEPS
+
+mkdir -p /opt/src
+cd /opt/src
+
+# ── Build Quickshell ─────────────────────────────────────
+if ! command -v qs >/dev/null 2>&1; then
+  echo "[030] Building Quickshell..."
+  git clone --depth 1 https://github.com/quickshell-mirror/quickshell.git || true
+  if [ -d quickshell ]; then
+    cd quickshell
+    cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release 2>&1 | tail -5
+    cmake --build build 2>&1 | tail -5
+    cmake --install build
+    cd /opt/src
+  fi
+fi
+
+# ── Build caelestia CLI ──────────────────────────────────
+python3 -m pip install --break-system-packages hatch hatch-vcs 2>/dev/null || true
+
+if ! command -v caelestia >/dev/null 2>&1; then
+  echo "[030] Building caelestia CLI..."
+  git clone --depth 1 https://github.com/caelestia-dots/cli.git || true
+  if [ -d cli ]; then
+    cd cli
+    python3 -m build --wheel 2>/dev/null || true
+    python3 -m installer dist/*.whl 2>/dev/null || true
+    cd /opt/src
+  fi
+fi
+
+# ── Clone caelestia shell ────────────────────────────────
+mkdir -p /usr/local/share/winux-shell
+
+if [ ! -d /opt/src/caelestia-shell ]; then
+  echo "[030] Cloning caelestia shell..."
+  git clone --depth 1 https://github.com/caelestia-dots/shell.git /opt/src/caelestia-shell || true
+fi
+
+if [ -d /opt/src/caelestia-shell ]; then
+  cd /opt/src/caelestia-shell
+  cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/ 2>&1 | tail -5 || true
+  cmake --build build 2>&1 | tail -5 || true
+  cmake --install build 2>/dev/null || true
+fi
+
+# ── Install Fluent GTK theme ─────────────────────────────
+cd /opt/src
+if [ ! -d Fluent-gtk-theme ]; then
+  echo "[030] Installing Fluent GTK theme..."
+  git clone --depth 1 https://github.com/vinceliuice/Fluent-gtk-theme.git || true
+fi
+if [ -d Fluent-gtk-theme ]; then
+  cd Fluent-gtk-theme
+  ./install.sh -d /usr/share/themes -l --tweaks round 2>/dev/null || true
+fi
+
+# ── Install Fluent icon theme ────────────────────────────
+cd /opt/src
+if [ ! -d Fluent-icon-theme ]; then
+  echo "[030] Installing Fluent icon theme..."
+  git clone --depth 1 https://github.com/vinceliuice/Fluent-icon-theme.git || true
+fi
+if [ -d Fluent-icon-theme ]; then
+  cd Fluent-icon-theme
+  ./install.sh -d /usr/share/icons 2>/dev/null || true
+fi
+
+# ── Install Fluent cursors ───────────────────────────────
+cd /opt/src
+if [ ! -d Fluent-cursors ]; then
+  echo "[030] Installing Fluent cursors..."
+  git clone --depth 1 https://github.com/vinceliuice/Fluent-cursors.git || true
+fi
+if [ -d Fluent-cursors ]; then
+  cd Fluent-cursors
+  ./install.sh 2>/dev/null || true
+fi
+
+# ── Install segoe-ui-linux (best effort) ─────────────────
+cd /opt/src
+if [ ! -d segoe-ui-linux ]; then
+  git clone --depth 1 https://github.com/mrbvrz/segoe-ui-linux.git 2>/dev/null || true
+fi
+if [ -d segoe-ui-linux ]; then
+  cd segoe-ui-linux
+  ./install.sh 2>/dev/null || true
+fi
+
+# ── Install Nerd Fonts (JetBrainsMono) ───────────────────
+cd /opt/src
+NERD_FONT_VERSION="3.1.1"
+NERD_FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v${NERD_FONT_VERSION}/JetBrainsMono.tar.xz"
+mkdir -p /usr/share/fonts/truetype/nerd-fonts
+if [ ! -f /usr/share/fonts/truetype/nerd-fonts/JetBrainsMonoNerdFont-Regular.ttf ]; then
+  echo "[030] Installing Nerd Fonts..."
+  wget -qO /tmp/nerd.tar.xz "$NERD_FONT_URL" 2>/dev/null || true
+  if [ -f /tmp/nerd.tar.xz ]; then
+    tar -xf /tmp/nerd.tar.xz -C /usr/share/fonts/truetype/nerd-fonts/ 2>/dev/null || true
+    rm -f /tmp/nerd.tar.xz
+  fi
+fi
+fc-cache -f 2>/dev/null || true
+
+# ── Download Windows 11-style wallpaper ──────────────────
+mkdir -p /usr/share/backgrounds/winux
+if [ ! -f /usr/share/backgrounds/winux/wallpaper.jpg ]; then
+  echo "[030] Downloading wallpaper..."
+  # Dark abstract wallpaper — free to use
+  wget -qO /usr/share/backgrounds/winux/wallpaper.jpg \
+    "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=1920&q=80" 2>/dev/null || true
+fi
+
+# If download failed, create a simple dark gradient SVG as fallback
+if [ ! -s /usr/share/backgrounds/winux/wallpaper.jpg ]; then
+  cat > /usr/share/backgrounds/winux/wallpaper.svg << 'SVGEOF'
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="50%" style="stop-color:#1a1a3e"/>
+      <stop offset="100%" style="stop-color:#0d2137"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#g)"/>
+</svg>
+SVGEOF
+  # Update hyprpaper to use SVG
+  sed -i 's/wallpaper\.jpg/wallpaper.svg/g' /etc/skel/.config/hypr/hyprpaper.conf 2>/dev/null || true
+fi
+
+# ── Purge build-time deps to reduce ISO size ─────────────
+echo "[030] Cleaning build dependencies..."
+apt-get purge -y --auto-remove $BUILD_DEPS 2>/dev/null || true
+apt-get autoremove -y 2>/dev/null || true
+apt-get clean
+
+echo "=== [030] Done ==="
