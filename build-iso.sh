@@ -61,6 +61,10 @@ printf $(du -sx --block-size=1 "$ROOTFS" | cut -f1) > "$ISO_DIR/casper/filesyste
 cat <<EOF > "$ISO_DIR/boot/grub/grub.cfg"
 set default="0"
 set timeout=5
+menuentry "SiemaOS (Safe Graphics)" {
+    linux /boot/vmlinuz boot=casper nomodeset username=live hostname=siemaos quiet splash ---
+    initrd /boot/initrd.img
+}
 menuentry "SiemaOS (Windows 11 Edition)" {
     linux /boot/vmlinuz boot=casper username=live hostname=siemaos quiet splash ---
     initrd /boot/initrd.img

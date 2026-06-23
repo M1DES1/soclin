@@ -4,6 +4,7 @@ W pełni funkcjonalny, startowy obraz Linuksa (Live ISO na bazie Ubuntu) upodobn
 Budowany od podstaw przy pomocy skryptu `debootstrap` w środowisku GitHub Actions.
 
 ## Główne różnice w stosunku do zwykłego Ubuntu:
+- **Instalator**: graficzny instalator `Calamares` z klasycznym przebiegiem konfiguracji, tworzeniem konta użytkownika i własnym brandingiem.
 - **Środowisko graficzne**: [Hyprland](https://hyprland.org) pobierany i budowany **ze źródeł**, używające zaokrąglonych krawędzi i bluru (estetyka Windows 11).
 - **Aplikacje EXE**: Wbudowane i pre-konfigurowane `Wine`. Każdy plik Windowsowego `.exe` uruchamia się natywnie podwójnym kliknięciem (kojarzony plik z Mime).
 - **Estetyka**: Zintegrowany WhiteSur-Light GTK.
@@ -32,3 +33,5 @@ Instrukcja zoptymalizowana pod natywnego Linuksa (lub WSL2 z odpowiednimi narzę
 Wygenerowane ISO jest bootowalne. Możesz uruchomić je przez:
 - Maszynę wirtualną – polecane: Oracle VirtualBox, wirtualizacja standardu Linuksa Ubuntu x64 (lub Inny Linux/UEFI).
 - Zrzucenie na pendrive za pomocą programu **Rufus** i zbootowanie go z PC.
+
+Po starcie obrazu uruchamia się sesja live z pełnym instalatorem `Calamares`, w którym użytkownik wybiera ustawienia systemu i tworzy własne konto docelowe.

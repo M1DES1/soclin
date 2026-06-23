@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="420" rx="36" fill="url(#g)"/>
+  <text x="70" y="155" fill="#ffffff" font-family="Segoe UI, Noto Sans, sans-serif" font-size="52" font-weight="700">Winux OS Installer</text>
+  <text x="70" y="215" fill="#bfdbfe" font-family="Segoe UI, Noto Sans, sans-serif" font-size="26">Wybierz opcje systemu, utworz konto i zainstaluj system.</text>
+  <text x="70" y="265" fill="#e2e8f0" font-family="Segoe UI, Noto Sans, sans-serif" font-size="22">Nowoczesny instalator z klasycznym flow jak w typowych systemach desktopowych.</text>
+  <rect x="70" y="305" width="280" height="10" rx="5" fill="#60a5fa"/>
+</svg>

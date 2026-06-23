@@ -45,7 +45,7 @@ fi
 cat <<EOF > /etc/sddm.conf.d/autologin.conf
 [Autologin]
 User=live
-Session=hyprland
+Session=hyprland.desktop
 EOF
 
 mkdir -p /home/live/.config/gtk-3.0
