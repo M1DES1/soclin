@@ -30,10 +30,12 @@ apt-get install -y xwayland libwayland-dev wayland-protocols \
     pavucontrol network-manager network-manager-gnome
 
 # 3. Instalacja narzędzi do zbudowania Hyprland (bez domyślnego cmake, bo jest za stare)
+# 3. Instalacja narzędzi do zbudowania Hyprland (bez domyślnego cmake, bo jest za stare)
 apt-get install -y meson cpio build-essential g++ pkg-config \
     libdrm-dev libegl-dev libgbm-dev libinput-dev libudev-dev \
     libwayland-dev libxcursor-dev libxkbcommon-dev libseat-dev \
     libxcb1-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+    libgles2-mesa-dev libgl1-mesa-dev libvulkan-dev \
     glslang-tools hwdata jq
 
 # Aktualizacja CMake do wersji >= 3.30 (wymagane przez najnowsze Hyprland)
