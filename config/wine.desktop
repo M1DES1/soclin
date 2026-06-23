@@ -1,0 +1,11 @@
+# Wine desktop entry
+[Desktop Entry]
+Name=Wine Windows Program Loader
+Exec=wine start /unix %f
+Type=Application
+StartupNotify=true
+Path=/tmp
+Icon=wine
+Categories=X-Wine;
+MimeType=application/x-ms-dos-executable;application/x-msi;application/x-ms-shortcut;
+NoDisplay=true

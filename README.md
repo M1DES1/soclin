@@ -1,54 +1,34 @@
-# 🖥️ SiemaOS
+# Winux-ISO (Linux Base)
 
-Minimalny system operacyjny, który po uruchomieniu wyświetla **"siema to ja"**.
+W pełni funkcjonalny, startowy obraz Linuksa (Live ISO na bazie Ubuntu) upodobniony do systemu Windows 11. 
+Budowany od podstaw przy pomocy skryptu `debootstrap` w środowisku GitHub Actions.
 
-Bootuje w VirtualBox (i każdym innym emulatorze/maszynie wirtualnej obsługującym BIOS boot).
+## Główne różnice w stosunku do zwykłego Ubuntu:
+- **Środowisko graficzne**: [Hyprland](https://hyprland.org) pobierany i budowany **ze źródeł**, używające zaokrąglonych krawędzi i bluru (estetyka Windows 11).
+- **Aplikacje EXE**: Wbudowane i pre-konfigurowane `Wine`. Każdy plik Windowsowego `.exe` uruchamia się natywnie podwójnym kliknięciem (kojarzony plik z Mime).
+- **Estetyka**: Zintegrowany WhiteSur-Light GTK.
+- **Skróty klawiszowe**: Np. `Win + E` uruchamia menedżer plików Thunar.
 
-## 🚀 Jak uruchomić?
+## Jak pobrać / zbudować?
 
-### Opcja 1: Pobierz gotowe ISO z GitHub Actions
-1. Wejdź w zakładkę **Actions** na GitHub
-2. Kliknij ostatni udany build
-3. Pobierz artifact **siemaos-iso**
-4. Rozpakuj i uruchom `siemaos.iso` w VirtualBox
+### Pobieranie z GitHub Actions (Zalecane)
+Nasz projekt używa **GitHub Actions**, aby samodzielnie wygenerować obraz `.iso`.
+1. Wejdź do zakładki **Actions** tego repozytorium.
+2. Otwórz u góry najnowszy *Workflow run*.
+3. Pobierz `winux-iso` z sekcji Artifacts na samym dole.
+4. Wyodrębnij `.zip` - otworzy się gotowe `.iso`.
 
-### Opcja 2: Zbuduj lokalnie (Linux)
-```bash
-sudo apt install nasm gcc gcc-multilib grub-pc-bin xorriso mtools
-make iso
-```
-Wynikowe ISO: `build/siemaos.iso`
+### Budowanie Lokalne
+Instrukcja zoptymalizowana pod natywnego Linuksa (lub WSL2 z odpowiednimi narzędziami). Budowanie wymaga uprawnień roota do `chroot`.
 
-## 🖼️ Co zobaczysz?
+1. Zainstaluj `squashfs-tools debootstrap xorriso grub-pc-bin grub-efi-amd64-bin`.
+2. Otwórz projekt w konsoli.
+3. Wpisz komendę: `sudo ./build-iso.sh`
+4. Czekaj (proces ściągania źródeł i paczek ubuntu potrwa dłuższą chwilę).
+5. Wynikiem będzie plik `siemaos-data.iso` dostępny w bieżącym pliku.
 
-Po uruchomieniu ISO w VirtualBox na ekranie pojawi się:
+## Uruchomienie ISO
 
-```
-                  siema to ja
-          Minimalny System Operacyjny v1.0
-```
-
-## 📁 Struktura projektu
-
-```
-├── src/
-│   ├── boot.asm      # Entry point (Multiboot2)
-│   ├── kernel.c      # Kernel - wyświetla tekst przez VGA
-│   └── linker.ld     # Linker script
-├── iso/
-│   └── boot/grub/
-│       └── grub.cfg  # Konfiguracja GRUB
-├── .github/
-│   └── workflows/
-│       └── build.yml # GitHub Actions - buduje ISO
-├── Makefile           # Build system
-└── README.md
-```
-
-## ⚙️ VirtualBox - ustawienia maszyny
-
-1. **New** → Name: SiemaOS, Type: **Other**, Version: **Other/Unknown**
-2. RAM: **64 MB** (wystarczy)
-3. Bez dysku twardego
-4. Settings → Storage → dodaj ISO jako CD-ROM
-5. **Start** 🎉
+Wygenerowane ISO jest bootowalne. Możesz uruchomić je przez:
+- Maszynę wirtualną – polecane: Oracle VirtualBox, wirtualizacja standardu Linuksa Ubuntu x64 (lub Inny Linux/UEFI).
+- Zrzucenie na pendrive za pomocą programu **Rufus** i zbootowanie go z PC.

@@ -1,0 +1,9 @@
+# Mimeapps.list domyślny dla XDG
+# Wymusza otwieranie .exe przez Wine (skrypt wine)
+
+[Default Applications]
+application/x-ms-dos-executable=wine.desktop
+application/x-msdownload=wine.desktop
+application/exe=wine.desktop
+application/x-exe=wine.desktop
+application/dos-exe=wine.desktop
