@@ -54,6 +54,7 @@ cat <<EOF > /etc/sddm.conf.d/autologin.conf
 User=live
 Session=openbox
 EOF
+systemctl enable sddm
 
 # Wyłączenie sprawdzania sum kontrolnych na starcie (psuje boot customowego ISO)
 rm -f /usr/lib/systemd/system/casper-md5check.service
