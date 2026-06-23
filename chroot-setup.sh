@@ -25,7 +25,7 @@ update-locale LANG=en_US.UTF-8
 # 2. Instalacja Wayland, ułatwień i menedżera logowania, terminala (kitty), file menedżera (thunar)
 apt-get install -y xwayland libwayland-dev wayland-protocols \
     kitty thunar thunar-archive-plugin \
-    polkit-kde-agent-1 qtwayland5 qt6-wayland xdg-desktop-portal-hyprland \
+    polkit-kde-agent-1 qtwayland5 qt6-wayland \
     mesa-utils vulkan-tools sddm \
     pavucontrol network-manager network-manager-gnome
 
