@@ -5,65 +5,46 @@ on:
   push:
     branches:
       - main
+      - master
     paths:
-      - "auto/**"
-      - "config/**"
-      - "build.sh"
+      - "github/iso-build/**"
       - ".github/workflows/build-iso.yml"
 
 jobs:
-  build:
+  build-iso:
     runs-on: ubuntu-24.04
-    timeout-minutes: 240
+    timeout-minutes: 360
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Free disk space
+      - name: Prepare CI workspace
         run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
-          sudo apt-get clean
-          df -h /
-
-      - name: Cache apt packages
-        uses: actions/cache@v4
-        with:
-          path: /var/cache/apt/archives
-          key: apt-${{ hashFiles('config/package-lists/*.chroot') }}
-          restore-keys: apt-
-
-      - name: Install host dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y \
-            live-build debootstrap squashfs-tools xorriso \
-            grub-pc-bin grub-efi-amd64-bin mtools dosfstools \
-            rsync wget curl git ca-certificates gnupg2 jq \
-            software-properties-common apt-transport-https
+          set -euxo pipefail
+          mkdir -p "$RUNNER_TEMP/winux-iso"
+          cp -a github/iso-build/. "$RUNNER_TEMP/winux-iso/"
+          chmod +x "$RUNNER_TEMP/winux-iso/build.sh"
+          chmod +x "$RUNNER_TEMP/winux-iso/auto/config"
 
       - name: Build ISO
         run: |
-          chmod +x build.sh auto/config
-          find config/hooks/normal -type f -name "*.chroot" -exec chmod +x {} \;
-          find config/includes.chroot -type f -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
-          ./build.sh
+          set -euxo pipefail
+          cd "$RUNNER_TEMP/winux-iso"
+          ./build.sh |& tee "$GITHUB_WORKSPACE/build-github.log"
 
       - name: Collect artifacts
+        if: always()
         run: |
-          mkdir -p out
-          find . -maxdepth 1 -type f -name "*.iso" -exec cp {} out/ \;
-          ls -lah out
-          echo "### ISO Build Results" >> $GITHUB_STEP_SUMMARY
-          for f in out/*.iso; do
-            SIZE=$(du -sh "$f" | cut -f1)
-            echo "- **$(basename $f)**: $SIZE" >> $GITHUB_STEP_SUMMARY
-          done
+          set -euxo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/artifacts"
+          find "$RUNNER_TEMP/winux-iso" -maxdepth 1 -name "*.iso" -exec cp {} "$GITHUB_WORKSPACE/artifacts/" \;
+          cp "$GITHUB_WORKSPACE/build-github.log" "$GITHUB_WORKSPACE/artifacts/" || true
 
-      - name: Upload ISO artifact
+      - name: Upload ISO and logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: winux-iso
-          path: out/*.iso
-          if-no-files-found: error
-          retention-days: 14
+          name: winux-iso-build
+          path: artifacts/
+          if-no-files-found: warn
