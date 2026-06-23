@@ -30,15 +30,13 @@ apt-get install -y xwayland libwayland-dev wayland-protocols \
     pavucontrol network-manager network-manager-gnome
 
 # 3. Instalacja narzędzi do zbudowania Hyprland (bez domyślnego cmake, bo jest za stare)
-# 3. Instalacja narzędzi do zbudowania Hyprland (bez domyślnego cmake, bo jest za stare)
-# 3. Instalacja narzędzi do zbudowania Hyprland (bez domyślnego cmake, bo jest za stare)
 apt-get install -y meson cpio build-essential g++ pkg-config \
     libdrm-dev libegl-dev libegl1-mesa-dev libgles2-mesa-dev libgl1-mesa-dev \
     libgbm-dev libinput-dev libudev-dev libwayland-dev libxcursor-dev \
     libxkbcommon-dev libseat-dev libxcb1-dev libxcb-render0-dev \
     libxcb-shape0-dev libxcb-xfixes0-dev libvulkan-dev \
-    glslang-tools glslang-dev libglslang-dev libdisplay-info-dev \
-    libhwdata-dev libpixman-1-dev uuid-dev libffi-dev ninja-build \
+    glslang-tools glslang-dev libdisplay-info-dev \
+    libpixman-1-dev uuid-dev libffi-dev ninja-build \
     libxcb-composite0-dev libxcb-present-dev libxcb-dri3-dev libxcb-res0-dev \
     libx11-xcb-dev hwdata jq
 
