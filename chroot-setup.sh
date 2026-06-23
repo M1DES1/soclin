@@ -16,7 +16,7 @@ apt-get upgrade -y
 
 # 1. Instalacja podstawowych pakietów środowiska i kernela
 apt-get install -y linux-image-generic linux-headers-generic initramfs-tools casper sudo \
-    locales nano wget curl git dbus systemd-sysv network-manager plymouth plymouth-theme-script plymouth-label
+    locales nano wget curl git dbus systemd-sysv network-manager plymouth plymouth-label
 
 locale-gen en_US.UTF-8
 update-locale LANG=en_US.UTF-8
