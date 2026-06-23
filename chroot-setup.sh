@@ -4,6 +4,14 @@ set -ex
 # Ten skrypt działa w środowisku root chroot
 export DEBIAN_FRONTEND=noninteractive
 
+# W chroot nie chcemy uruchamiać usług z postinst, bo generują fałszywe błędy
+# i potrafią dociągać dodatkowe elementy sesji desktopowej.
+cat <<'EOF' > /usr/sbin/policy-rc.d
+#!/bin/sh
+exit 101
+EOF
+chmod +x /usr/sbin/policy-rc.d
+
 # Ustawienie repozytoriów
 cat <<EOF > /etc/apt/sources.list
 deb http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse
@@ -15,14 +23,14 @@ apt-get update
 apt-get upgrade -y
 
 # 1. Instalacja podstawowych pakietów środowiska i kernela
-apt-get install -y linux-image-generic linux-headers-generic initramfs-tools casper sudo \
+apt-get install -y --no-install-recommends linux-image-generic linux-headers-generic initramfs-tools casper sudo \
     locales nano wget curl git dbus systemd-sysv network-manager plymouth plymouth-label
 
 locale-gen en_US.UTF-8
 update-locale LANG=en_US.UTF-8
 
 # 2. Instalacja absolutnego minimum z GUI i prawdziwego instalatora live.
-apt-get install -y xserver-xorg xinit openbox sddm calamares calamares-settings-ubuntu-common \
+apt-get install -y --no-install-recommends xserver-xorg xinit openbox sddm calamares calamares-settings-ubuntu-common \
     xserver-xorg-video-fbdev xserver-xorg-video-vesa \
     pavucontrol network-manager-gnome virtualbox-guest-x11 virtualbox-guest-utils
 
@@ -128,6 +136,7 @@ rm -f /usr/lib/systemd/system/casper-md5check.service
 rm -f /etc/systemd/system/multi-user.target.wants/casper-md5check.service
 
 # Czyszczenie na koniec ISO buildu
+rm -f /usr/sbin/policy-rc.d
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 rm -rf /tmp/*
