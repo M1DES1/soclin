@@ -24,7 +24,7 @@ apt-get upgrade -y
 
 # 1. Instalacja podstawowych pakietów środowiska i kernela
 apt-get install -y --no-install-recommends linux-image-generic linux-headers-generic initramfs-tools casper sudo \
-    locales nano wget curl git dbus systemd-sysv network-manager plymouth plymouth-label
+    locales nano wget curl git dbus systemd-sysv network-manager plymouth plymouth-label rsync squashfs-tools
 
 locale-gen en_US.UTF-8
 update-locale LANG=en_US.UTF-8
@@ -126,12 +126,13 @@ chmod 440 /etc/sudoers.d/live-nopasswd
 mkdir -p /etc/sddm.conf.d
 cat <<EOF > /etc/sddm.conf.d/soclin.conf
 [Users]
-RememberLastSession=true
+RememberLastSession=false
+RememberLastUser=false
 EOF
 cat <<EOF > /etc/sddm.conf.d/autologin.conf
 [Autologin]
 User=live
-Session=soclin-live.desktop
+Session=soclin-live
 Relogin=false
 EOF
 systemctl enable sddm.service || true
