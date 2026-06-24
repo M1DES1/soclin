@@ -160,6 +160,107 @@ Type=Application
 DesktopNames=soclin-live
 EOF
 
+# Minimalny Openbox dla ISO live. Nie pokazujemy standardowego menu z akcjami
+# zaleznymi od x-terminal-emulator, bo ta sesja sluzy tylko do odpalenia Calamares.
+mkdir -p /etc/xdg/openbox
+cat <<'EOF' > /etc/xdg/openbox/menu.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_menu xmlns="http://openbox.org/3.4/menu">
+  <menu id="root-menu" label="Openbox 3">
+    <item label="Installer is starting">
+      <action name="Execute">
+        <command>/usr/local/bin/soclin-launch-installer</command>
+      </action>
+    </item>
+  </menu>
+</openbox_menu>
+EOF
+cat <<'EOF' > /etc/xdg/openbox/rc.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <applications/>
+  <desktops>
+    <number>1</number>
+    <firstdesk>1</firstdesk>
+  </desktops>
+  <keyboard/>
+  <menu>
+    <file>/etc/xdg/openbox/menu.xml</file>
+    <hideDelay>0</hideDelay>
+    <middle>false</middle>
+    <submenuShowDelay>0</submenuShowDelay>
+    <submenuHideDelay>0</submenuHideDelay>
+    <showIcons>false</showIcons>
+    <manageDesktops>false</manageDesktops>
+  </menu>
+  <mouse>
+    <dragThreshold>1</dragThreshold>
+    <doubleClickTime>500</doubleClickTime>
+    <screenEdgeWarpTime>400</screenEdgeWarpTime>
+    <screenEdgeWarpMouse>false</screenEdgeWarpMouse>
+  </mouse>
+  <resistance>
+    <strength>10</strength>
+    <screen_edge_strength>20</screen_edge_strength>
+  </resistance>
+  <focus>
+    <focusNew>yes</focusNew>
+    <followMouse>no</followMouse>
+    <focusLast>yes</focusLast>
+    <underMouse>no</underMouse>
+    <focusDelay>0</focusDelay>
+    <raiseOnFocus>no</raiseOnFocus>
+  </focus>
+  <placement>
+    <policy>Smart</policy>
+    <center>yes</center>
+    <monitor>Primary</monitor>
+    <primaryMonitor>Active</primaryMonitor>
+  </placement>
+  <theme>
+    <name>Clearlooks</name>
+    <titleLayout>NLIMC</titleLayout>
+    <keepBorder>yes</keepBorder>
+    <animateIconify>no</animateIconify>
+    <font place="ActiveWindow">
+      <name>sans</name>
+      <size>10</size>
+      <weight>bold</weight>
+      <slant>normal</slant>
+    </font>
+    <font place="MenuHeader">
+      <name>sans</name>
+      <size>10</size>
+      <weight>bold</weight>
+      <slant>normal</slant>
+    </font>
+    <font place="MenuItem">
+      <name>sans</name>
+      <size>10</size>
+      <weight>normal</weight>
+      <slant>normal</slant>
+    </font>
+    <font place="OnScreenDisplay">
+      <name>sans</name>
+      <size>10</size>
+      <weight>normal</weight>
+      <slant>normal</slant>
+    </font>
+  </theme>
+  <margins>
+    <top>0</top>
+    <bottom>0</bottom>
+    <left>0</left>
+    <right>0</right>
+  </margins>
+</openbox_config>
+EOF
+cat <<'EOF' > /etc/xdg/openbox/autostart
+#!/bin/sh
+:
+EOF
+chmod +x /etc/xdg/openbox/autostart
+
 # 7. Utworzenie technicznego usera Live dla sesji instalatora
 for grp in plugdev netdev; do
     getent group "$grp" >/dev/null || groupadd "$grp"
@@ -183,7 +284,7 @@ RememberLastUser=false
 
 [Autologin]
 User=live
-Session=soclin-live
+Session=soclin-live.desktop
 Relogin=false
 EOF
 cat <<EOF > /etc/sddm.conf.d/00-soclin-live.conf
@@ -196,7 +297,7 @@ RememberLastUser=false
 
 [Autologin]
 User=live
-Session=soclin-live
+Session=soclin-live.desktop
 Relogin=false
 EOF
 systemctl enable sddm.service || true
@@ -204,7 +305,7 @@ systemctl set-default graphical.target || true
 
 cat <<'EOF' > /home/live/.dmrc
 [Desktop]
-Session=soclin-live
+Session=soclin-live.desktop
 EOF
 chown -R live:live /home/live
 
