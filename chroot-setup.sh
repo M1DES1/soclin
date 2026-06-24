@@ -120,7 +120,34 @@ exec openbox-session
 EOF
 cat <<'EOF' > /home/live/.bash_profile
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
-    exec startx
+    LOGFILE="$HOME/.soclin-startx.log"
+    {
+        echo "=== soclin startx debug ==="
+        date
+        echo "tty=$(tty)"
+        echo "user=$(id -un)"
+        id
+        echo "--- groups ---"
+        groups || true
+        echo "--- /dev/dri ---"
+        ls -la /dev/dri || true
+        echo "--- /dev/fb* ---"
+        ls -la /dev/fb* || true
+        echo "--- /dev/vbox* ---"
+        ls -la /dev/vbox* || true
+        echo "--- startx ---"
+    } >>"$LOGFILE" 2>&1
+
+    startx >>"$LOGFILE" 2>&1
+    rc=$?
+
+    {
+        echo "--- startx exit code: $rc ---"
+        echo "--- Xorg.0.log ---"
+        tail -n 120 "$HOME/.local/share/xorg/Xorg.0.log" || true
+    } >>"$LOGFILE" 2>&1
+
+    exit "$rc"
 fi
 EOF
 cat <<'EOF' > /home/live/Desktop/Install-soclin.desktop
