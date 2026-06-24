@@ -89,9 +89,9 @@ sddm_conf_d_present=false
 session_file_present=false
 dmrc_session_ok=false
 [ -f /etc/sddm.conf ] && sddm_conf_present=true
-grep -q '^Session=soclin-live\.desktop$' /etc/sddm.conf.d/99-soclin-live.conf 2>/dev/null && sddm_conf_d_present=true
+grep -q '^Session=soclin-live$' /etc/sddm.conf.d/99-soclin-live.conf 2>/dev/null && sddm_conf_d_present=true
 [ -f /usr/share/xsessions/soclin-live.desktop ] && session_file_present=true
-grep -q '^Session=soclin-live\.desktop$' /home/live/.dmrc 2>/dev/null && dmrc_session_ok=true
+grep -q '^Session=soclin-live$' /home/live/.dmrc 2>/dev/null && dmrc_session_ok=true
 {
     echo "==== soclin-debug-sddm-state ===="
     date -Is
@@ -110,6 +110,56 @@ curl -fsS --max-time 2 -H "Content-Type: application/json" -d "{\"sessionId\":\"
 # #endregion
 EOF
 chmod +x /usr/local/bin/soclin-debug-sddm-state
+cat <<'EOF' > /usr/local/bin/soclin-prepare-live-session
+#!/bin/bash
+set -e
+
+mkdir -p /usr/share/xsessions /etc/sddm.conf.d /home/live
+cat <<'DESKTOP' > /usr/share/xsessions/soclin-live.desktop
+[Desktop Entry]
+Name=soclin Live
+Comment=soclin live installer session
+Exec=/usr/local/bin/soclin-live-session
+TryExec=/usr/local/bin/soclin-live-session
+Type=Application
+DesktopNames=soclin-live
+DESKTOP
+cat <<'SDDM' > /etc/sddm.conf.d/99-soclin-live.conf
+[General]
+DisplayServer=x11
+
+[Users]
+RememberLastSession=false
+RememberLastUser=false
+
+[Autologin]
+User=live
+Session=soclin-live
+Relogin=false
+SDDM
+cat <<'DMRC' > /home/live/.dmrc
+[Desktop]
+Session=soclin-live
+DMRC
+chown live:live /home/live/.dmrc 2>/dev/null || true
+chmod 644 /home/live/.dmrc 2>/dev/null || true
+EOF
+chmod +x /usr/local/bin/soclin-prepare-live-session
+cat <<'EOF' > /etc/systemd/system/soclin-prepare-live-session.service
+[Unit]
+Description=Ensure soclin live session is present before SDDM starts
+Before=sddm.service
+After=local-fs.target
+Wants=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/soclin-prepare-live-session
+
+[Install]
+WantedBy=graphical.target
+EOF
+systemctl enable soclin-prepare-live-session.service || true
 cat <<'EOF' > /etc/systemd/system/soclin-debug-sddm-state.service
 [Unit]
 Description=Capture soclin live SDDM state for debugging
@@ -357,7 +407,7 @@ RememberLastUser=false
 
 [Autologin]
 User=live
-Session=soclin-live.desktop
+Session=soclin-live
 Relogin=false
 EOF
 systemctl enable sddm.service || true
@@ -365,7 +415,7 @@ systemctl set-default graphical.target || true
 
 cat <<'EOF' > /home/live/.dmrc
 [Desktop]
-Session=soclin-live.desktop
+Session=soclin-live
 EOF
 chown -R live:live /home/live
 
