@@ -30,6 +30,14 @@ mount -t devpts devpts "$ROOTFS/dev/pts"
 cp chroot-setup.sh "$ROOTFS/root/"
 chmod +x "$ROOTFS/root/chroot-setup.sh"
 cp -r config "$ROOTFS/root/"
+mkdir -p "$ROOTFS/etc/soclin-debug"
+if [ -f ".dbg/live-login-loop.env" ]; then
+    cp ".dbg/live-login-loop.env" "$ROOTFS/etc/soclin-debug/live-login-loop.env"
+fi
+cat <<EOF > "$ROOTFS/etc/soclin-debug/build-info.env"
+BUILD_SESSION=live-login-loop
+BUILD_TIMESTAMP=$(date -Is)
+EOF
 
 echo "=== Uruchamianie chroot-setup.sh ==="
 chroot "$ROOTFS" /bin/bash /root/chroot-setup.sh

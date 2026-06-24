@@ -79,6 +79,53 @@ cp -r /root/config/plymouth/. /usr/share/plymouth/themes/soclin/
 update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/soclin/soclin.plymouth 100
 update-alternatives --set default.plymouth /usr/share/plymouth/themes/soclin/soclin.plymouth
 
+cat <<'EOF' > /usr/local/bin/soclin-debug-sddm-state
+#!/bin/bash
+set +e
+source /etc/soclin-debug/live-login-loop.env 2>/dev/null || { DEBUG_SERVER_URL="http://127.0.0.1:7777/event"; DEBUG_SESSION_ID="live-login-loop"; }
+source /etc/soclin-debug/build-info.env 2>/dev/null || true
+sddm_conf_present=false
+sddm_conf_d_present=false
+session_file_present=false
+dmrc_session_ok=false
+grep -q '^Session=soclin-live\.desktop$' /etc/sddm.conf 2>/dev/null && sddm_conf_present=true
+grep -q '^Session=soclin-live\.desktop$' /etc/sddm.conf.d/00-soclin-live.conf 2>/dev/null && sddm_conf_d_present=true
+[ -f /usr/share/xsessions/soclin-live.desktop ] && session_file_present=true
+grep -q '^Session=soclin-live\.desktop$' /home/live/.dmrc 2>/dev/null && dmrc_session_ok=true
+{
+    echo "==== soclin-debug-sddm-state ===="
+    date -Is
+    echo "build_session=${BUILD_SESSION:-}"
+    echo "build_timestamp=${BUILD_TIMESTAMP:-}"
+    echo "sddm_conf_present=$sddm_conf_present"
+    echo "sddm_conf_d_present=$sddm_conf_d_present"
+    echo "session_file_present=$session_file_present"
+    echo "dmrc_session_ok=$dmrc_session_ok"
+} >> /var/log/soclin-sddm-state.log 2>&1
+# #region debug-point A:boot-sddm-state
+curl -fsS --max-time 2 -H "Content-Type: application/json" -d "{\"sessionId\":\"$DEBUG_SESSION_ID\",\"runId\":\"pre-fix\",\"hypothesisId\":\"A\",\"location\":\"soclin-debug-sddm-state\",\"msg\":\"[DEBUG] sddm boot state captured\",\"data\":{\"sddm_conf_present\":$sddm_conf_present,\"sddm_conf_d_present\":$sddm_conf_d_present,\"session_file_present\":$session_file_present,\"dmrc_session_ok\":$dmrc_session_ok}}" "$DEBUG_SERVER_URL" >/dev/null 2>&1 || true
+# #endregion
+# #region debug-point D:build-marker
+curl -fsS --max-time 2 -H "Content-Type: application/json" -d "{\"sessionId\":\"$DEBUG_SESSION_ID\",\"runId\":\"pre-fix\",\"hypothesisId\":\"D\",\"location\":\"soclin-debug-sddm-state\",\"msg\":\"[DEBUG] live image build marker\",\"data\":{\"build_session\":\"${BUILD_SESSION:-missing}\",\"build_timestamp\":\"${BUILD_TIMESTAMP:-missing}\"}}" "$DEBUG_SERVER_URL" >/dev/null 2>&1 || true
+# #endregion
+EOF
+chmod +x /usr/local/bin/soclin-debug-sddm-state
+cat <<'EOF' > /etc/systemd/system/soclin-debug-sddm-state.service
+[Unit]
+Description=Capture soclin live SDDM state for debugging
+Before=sddm.service
+After=local-fs.target
+Wants=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/soclin-debug-sddm-state
+
+[Install]
+WantedBy=graphical.target
+EOF
+systemctl enable soclin-debug-sddm-state.service || true
+
 cat <<'EOF' > /usr/local/bin/soclin-launch-installer
 #!/bin/bash
 set -e
@@ -93,6 +140,10 @@ set -e
     echo "xdg_current_desktop=${XDG_CURRENT_DESKTOP:-}"
 } >> /var/log/soclin-live-debug.log 2>&1
 #endregion debug-point live-installer-start
+# #region debug-point E:installer-entry
+source /etc/soclin-debug/live-login-loop.env 2>/dev/null || { DEBUG_SERVER_URL="http://127.0.0.1:7777/event"; DEBUG_SESSION_ID="live-login-loop"; }
+curl -fsS --max-time 2 -H "Content-Type: application/json" -d "{\"sessionId\":\"$DEBUG_SESSION_ID\",\"runId\":\"pre-fix\",\"hypothesisId\":\"E\",\"location\":\"soclin-launch-installer:start\",\"msg\":\"[DEBUG] installer launcher entered\",\"data\":{\"user\":\"$(id -un)\",\"display\":\"${DISPLAY:-missing}\",\"desktop_session\":\"${DESKTOP_SESSION:-missing}\"}}" "$DEBUG_SERVER_URL" >/dev/null 2>&1 || true
+# #endregion
 sleep 2
 if pgrep -x calamares >/dev/null; then
 #region debug-point live-installer-already-running
@@ -105,6 +156,9 @@ echo "$(date -Is) calamares-exec" >> /var/log/soclin-live-debug.log 2>&1
 calamares --fullscreen >> /var/log/soclin-live-debug.log 2>&1
 status=$?
 echo "$(date -Is) calamares-exit=$status" >> /var/log/soclin-live-debug.log 2>&1
+# #region debug-point E:installer-exit
+curl -fsS --max-time 2 -H "Content-Type: application/json" -d "{\"sessionId\":\"$DEBUG_SESSION_ID\",\"runId\":\"pre-fix\",\"hypothesisId\":\"E\",\"location\":\"soclin-launch-installer:exit\",\"msg\":\"[DEBUG] installer launcher exited\",\"data\":{\"status\":$status}}" "$DEBUG_SERVER_URL" >/dev/null 2>&1 || true
+# #endregion
 exit "$status"
 #endregion debug-point live-installer-exec
 EOF
@@ -131,6 +185,11 @@ set -e
 export DESKTOP_SESSION=soclin-live
 export XDG_SESSION_DESKTOP=soclin-live
 export XDG_CURRENT_DESKTOP=soclin-live
+# #region debug-point B:live-session-entry
+source /etc/soclin-debug/live-login-loop.env 2>/dev/null || { DEBUG_SERVER_URL="http://127.0.0.1:7777/event"; DEBUG_SESSION_ID="live-login-loop"; }
+source /etc/soclin-debug/build-info.env 2>/dev/null || true
+curl -fsS --max-time 2 -H "Content-Type: application/json" -d "{\"sessionId\":\"$DEBUG_SESSION_ID\",\"runId\":\"pre-fix\",\"hypothesisId\":\"B\",\"location\":\"soclin-live-session:start\",\"msg\":\"[DEBUG] live session entry\",\"data\":{\"build_session\":\"${BUILD_SESSION:-missing}\",\"build_timestamp\":\"${BUILD_TIMESTAMP:-missing}\",\"session_file_present\":$([ -f /usr/share/xsessions/soclin-live.desktop ] && echo true || echo false),\"desktop_session\":\"${DESKTOP_SESSION:-missing}\"}}" "$DEBUG_SERVER_URL" >/dev/null 2>&1 || true
+# #endregion
 
 openbox-session >/var/log/soclin-openbox.log 2>&1 &
 openbox_pid=$!
@@ -257,6 +316,19 @@ cat <<'EOF' > /etc/xdg/openbox/rc.xml
 EOF
 cat <<'EOF' > /etc/xdg/openbox/autostart
 #!/bin/sh
+set +e
+# #region debug-point C:openbox-autostart
+source /etc/soclin-debug/live-login-loop.env 2>/dev/null || { DEBUG_SERVER_URL="http://127.0.0.1:7777/event"; DEBUG_SESSION_ID="live-login-loop"; }
+{
+    echo "==== soclin-openbox-autostart ===="
+    date -Is
+    echo "user=$(id -un)"
+    echo "desktop_session=${DESKTOP_SESSION:-}"
+    echo "xdg_session_desktop=${XDG_SESSION_DESKTOP:-}"
+    echo "xdg_current_desktop=${XDG_CURRENT_DESKTOP:-}"
+} >> /var/log/soclin-openbox-autostart.log 2>&1
+curl -fsS --max-time 2 -H "Content-Type: application/json" -d "{\"sessionId\":\"$DEBUG_SESSION_ID\",\"runId\":\"pre-fix\",\"hypothesisId\":\"C\",\"location\":\"openbox:autostart\",\"msg\":\"[DEBUG] openbox autostart reached\",\"data\":{\"user\":\"$(id -un)\",\"desktop_session\":\"${DESKTOP_SESSION:-missing}\",\"xdg_session_desktop\":\"${XDG_SESSION_DESKTOP:-missing}\",\"xdg_current_desktop\":\"${XDG_CURRENT_DESKTOP:-missing}\"}}" "$DEBUG_SERVER_URL" >/dev/null 2>&1 || true
+# #endregion
 :
 EOF
 chmod +x /etc/xdg/openbox/autostart
