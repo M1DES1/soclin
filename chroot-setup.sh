@@ -89,6 +89,9 @@ EOF
 chmod +x /usr/local/bin/soclin-launch-installer
 
 # 7. Utworzenie technicznego usera Live dla sesji instalatora
+for grp in plugdev netdev; do
+    getent group "$grp" >/dev/null || groupadd "$grp"
+done
 useradd -m -s /bin/bash -G sudo,video,audio,plugdev,netdev live
 echo "live:live" | chpasswd
 cat <<EOF > /etc/sudoers.d/live-nopasswd
