@@ -61,12 +61,12 @@ printf $(du -sx --block-size=1 "$ROOTFS" | cut -f1) > "$ISO_DIR/casper/filesyste
 cat <<EOF > "$ISO_DIR/boot/grub/grub.cfg"
 set default="0"
 set timeout=5
-menuentry "soclin (Safe Graphics)" {
-    linux /boot/vmlinuz boot=casper nomodeset username=live hostname=soclin quiet splash ---
-    initrd /boot/initrd.img
-}
 menuentry "soclin" {
     linux /boot/vmlinuz boot=casper username=live hostname=soclin quiet splash ---
+    initrd /boot/initrd.img
+}
+menuentry "soclin (Safe Graphics)" {
+    linux /boot/vmlinuz boot=casper nomodeset username=live hostname=soclin quiet splash ---
     initrd /boot/initrd.img
 }
 EOF

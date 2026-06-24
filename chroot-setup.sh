@@ -30,7 +30,10 @@ locale-gen en_US.UTF-8
 update-locale LANG=en_US.UTF-8
 
 # 2. Instalacja desktopowego środowiska live z normalnym ekranem logowania.
-apt-get install -y --no-install-recommends xserver-xorg openbox sddm calamares calamares-settings-ubuntu-common \
+# Pakiety video/input są dodane jawnie, bo `--no-install-recommends` potrafi
+# zostawić zbyt okrojony X.Org i wtedy display manager nie wstaje.
+apt-get install -y --no-install-recommends xserver-xorg xserver-xorg-video-all xserver-xorg-input-all \
+    xinit x11-xserver-utils dbus-x11 openbox sddm calamares calamares-settings-ubuntu-common \
     pavucontrol network-manager-gnome virtualbox-guest-x11 virtualbox-guest-utils
 
 # Branding systemu bazowego
