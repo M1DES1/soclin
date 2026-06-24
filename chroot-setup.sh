@@ -29,9 +29,8 @@ apt-get install -y --no-install-recommends linux-image-generic linux-headers-gen
 locale-gen en_US.UTF-8
 update-locale LANG=en_US.UTF-8
 
-# 2. Instalacja absolutnego minimum z GUI i prawdziwego instalatora live.
-apt-get install -y --no-install-recommends xserver-xorg xinit openbox sddm calamares calamares-settings-ubuntu-common \
-    xserver-xorg-video-fbdev xserver-xorg-video-vesa \
+# 2. Instalacja desktopowego środowiska live z normalnym ekranem logowania.
+apt-get install -y --no-install-recommends xserver-xorg openbox sddm calamares calamares-settings-ubuntu-common \
     pavucontrol network-manager-gnome virtualbox-guest-x11 virtualbox-guest-utils
 
 # Branding systemu bazowego
@@ -99,56 +98,28 @@ live ALL=(ALL) NOPASSWD: ALL
 EOF
 chmod 440 /etc/sudoers.d/live-nopasswd
 
-# Live start bez menedzera logowania: getty -> autologin -> startx -> openbox -> calamares
-mkdir -p /etc/systemd/system/getty@tty1.service.d
-cat <<EOF > /etc/systemd/system/getty@tty1.service.d/autologin.conf
-[Service]
-ExecStart=
-ExecStart=-/sbin/agetty --autologin live --noclear %I \$TERM
-Type=simple
+# Start jak w Ubuntu Live: automatyczne wejście tylko do sesji live.
+mkdir -p /etc/sddm.conf.d
+cat <<EOF > /etc/sddm.conf.d/soclin.conf
+[Users]
+RememberLastSession=true
 EOF
-systemctl disable sddm || true
-rm -f /etc/systemd/system/display-manager.service
+cat <<EOF > /etc/sddm.conf.d/autologin.conf
+[Autologin]
+User=live
+Session=openbox.desktop
+Relogin=false
+EOF
+systemctl enable sddm.service || true
+systemctl set-default graphical.target || true
 
 mkdir -p /home/live/.config/openbox /home/live/Desktop
 cat <<'EOF' > /home/live/.config/openbox/autostart
 /usr/local/bin/soclin-launch-installer &
 EOF
-cat <<'EOF' > /home/live/.xinitrc
-#!/bin/sh
-exec openbox-session
-EOF
-cat <<'EOF' > /home/live/.bash_profile
-if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
-    LOGFILE="$HOME/.soclin-startx.log"
-    {
-        echo "=== soclin startx debug ==="
-        date
-        echo "tty=$(tty)"
-        echo "user=$(id -un)"
-        id
-        echo "--- groups ---"
-        groups || true
-        echo "--- /dev/dri ---"
-        ls -la /dev/dri || true
-        echo "--- /dev/fb* ---"
-        ls -la /dev/fb* || true
-        echo "--- /dev/vbox* ---"
-        ls -la /dev/vbox* || true
-        echo "--- startx ---"
-    } >>"$LOGFILE" 2>&1
-
-    startx >>"$LOGFILE" 2>&1
-    rc=$?
-
-    {
-        echo "--- startx exit code: $rc ---"
-        echo "--- Xorg.0.log ---"
-        tail -n 120 "$HOME/.local/share/xorg/Xorg.0.log" || true
-    } >>"$LOGFILE" 2>&1
-
-    exit "$rc"
-fi
+cat <<'EOF' > /home/live/.dmrc
+[Desktop]
+Session=openbox
 EOF
 cat <<'EOF' > /home/live/Desktop/Install-soclin.desktop
 [Desktop Entry]
@@ -160,7 +131,7 @@ Icon=system-software-install
 Terminal=false
 Categories=System;
 EOF
-chmod +x /home/live/.xinitrc /home/live/Desktop/Install-soclin.desktop
+chmod +x /home/live/Desktop/Install-soclin.desktop
 chown -R live:live /home/live
 
 # Wyłączenie sprawdzania sum kontrolnych na starcie (psuje boot customowego ISO)

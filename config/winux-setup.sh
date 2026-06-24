@@ -41,12 +41,9 @@ if [ ! -d "win11-theme" ]; then
     ./install.sh -c Light -t all -N glassy
 fi
 
-# Zmiana domyślnej sesji w autologin na hyprland
-cat <<EOF > /etc/sddm.conf.d/autologin.conf
-[Autologin]
-User=live
-Session=hyprland.desktop
-EOF
+# Logowanie ma pozostać normalne, bez automatycznego wejścia do sesji.
+mkdir -p /etc/sddm.conf.d
+rm -f /etc/sddm.conf.d/autologin.conf
 
 mkdir -p /home/live/.config/gtk-3.0
 cat <<EOF > /home/live/.config/gtk-3.0/settings.ini
