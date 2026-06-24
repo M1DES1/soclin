@@ -88,8 +88,8 @@ sddm_conf_present=false
 sddm_conf_d_present=false
 session_file_present=false
 dmrc_session_ok=false
-grep -q '^Session=soclin-live\.desktop$' /etc/sddm.conf 2>/dev/null && sddm_conf_present=true
-grep -q '^Session=soclin-live\.desktop$' /etc/sddm.conf.d/00-soclin-live.conf 2>/dev/null && sddm_conf_d_present=true
+[ -f /etc/sddm.conf ] && sddm_conf_present=true
+grep -q '^Session=soclin-live\.desktop$' /etc/sddm.conf.d/99-soclin-live.conf 2>/dev/null && sddm_conf_d_present=true
 [ -f /usr/share/xsessions/soclin-live.desktop ] && session_file_present=true
 grep -q '^Session=soclin-live\.desktop$' /home/live/.dmrc 2>/dev/null && dmrc_session_ok=true
 {
@@ -346,20 +346,8 @@ chmod 440 /etc/sudoers.d/live-nopasswd
 
 # Start jak w Ubuntu Live: automatyczne wejście tylko do sesji live.
 mkdir -p /etc/sddm.conf.d
-cat <<EOF > /etc/sddm.conf
-[General]
-DisplayServer=x11
-
-[Users]
-RememberLastSession=false
-RememberLastUser=false
-
-[Autologin]
-User=live
-Session=soclin-live.desktop
-Relogin=false
-EOF
-cat <<EOF > /etc/sddm.conf.d/00-soclin-live.conf
+rm -f /etc/sddm.conf /etc/sddm.conf.d/autologin.conf /etc/sddm.conf.d/soclin.conf /etc/sddm.conf.d/00-soclin-live.conf /etc/sddm.conf.d/99-soclin-live.conf
+cat <<EOF > /etc/sddm.conf.d/99-soclin-live.conf
 [General]
 DisplayServer=x11
 
