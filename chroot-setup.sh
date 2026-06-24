@@ -90,6 +90,27 @@ exec calamares --fullscreen
 EOF
 chmod +x /usr/local/bin/soclin-launch-installer
 
+cat <<'EOF' > /usr/local/bin/soclin-live-session
+#!/bin/bash
+set -e
+
+# Uruchamiamy instalator niezależnie od mechanizmu autostartu Openbox,
+# żeby sesja live zawsze od razu pokazywała Calamares.
+/usr/local/bin/soclin-launch-installer >/var/log/soclin-launch-installer.log 2>&1 &
+exec openbox-session
+EOF
+chmod +x /usr/local/bin/soclin-live-session
+
+mkdir -p /usr/share/xsessions
+cat <<'EOF' > /usr/share/xsessions/soclin-live.desktop
+[Desktop Entry]
+Name=soclin Live
+Comment=soclin live installer session
+Exec=/usr/local/bin/soclin-live-session
+Type=Application
+DesktopNames=soclin-live
+EOF
+
 # 7. Utworzenie technicznego usera Live dla sesji instalatora
 for grp in plugdev netdev; do
     getent group "$grp" >/dev/null || groupadd "$grp"
@@ -110,19 +131,27 @@ EOF
 cat <<EOF > /etc/sddm.conf.d/autologin.conf
 [Autologin]
 User=live
-Session=openbox.desktop
+Session=soclin-live.desktop
 Relogin=false
 EOF
 systemctl enable sddm.service || true
 systemctl set-default graphical.target || true
 
-mkdir -p /home/live/.config/openbox /home/live/Desktop
+mkdir -p /home/live/.config/openbox /home/live/.config/autostart /home/live/Desktop
 cat <<'EOF' > /home/live/.config/openbox/autostart
 /usr/local/bin/soclin-launch-installer &
 EOF
+cat <<'EOF' > /home/live/.config/autostart/soclin-installer.desktop
+[Desktop Entry]
+Type=Application
+Name=Start soclin Installer
+Exec=/usr/local/bin/soclin-launch-installer
+Terminal=false
+X-GNOME-Autostart-enabled=true
+EOF
 cat <<'EOF' > /home/live/.dmrc
 [Desktop]
-Session=openbox
+Session=soclin-live
 EOF
 cat <<'EOF' > /home/live/Desktop/Install-soclin.desktop
 [Desktop Entry]
