@@ -52,7 +52,7 @@ cp "$ROOTFS/boot/initrd.img-"* "$ISO_DIR/boot/initrd.img" || cp "$ROOTFS/boot/in
 
 # 5. Generowanie SquashFS
 echo "=== Kompresja do SquashFS ==="
-mksquashfs "$ROOTFS" "$ISO_DIR/casper/filesystem.squashfs" -comp xz -e boot
+mksquashfs "$ROOTFS" "$ISO_DIR/casper/filesystem.squashfs" -comp xz -wildcards -e boot/vmlinuz* boot/initrd.img*
 
 sleep 2
 printf $(du -sx --block-size=1 "$ROOTFS" | cut -f1) > "$ISO_DIR/casper/filesystem.size"

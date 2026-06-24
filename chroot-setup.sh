@@ -82,17 +82,49 @@ update-alternatives --set default.plymouth /usr/share/plymouth/themes/soclin/soc
 cat <<'EOF' > /usr/local/bin/soclin-launch-installer
 #!/bin/bash
 set -e
+#region debug-point live-installer-start
+{
+    echo "==== soclin-launch-installer ===="
+    date -Is
+    echo "user=$(id -un)"
+    echo "display=${DISPLAY:-}"
+    echo "desktop_session=${DESKTOP_SESSION:-}"
+    echo "xdg_session_desktop=${XDG_SESSION_DESKTOP:-}"
+    echo "xdg_current_desktop=${XDG_CURRENT_DESKTOP:-}"
+} >> /var/log/soclin-live-debug.log 2>&1
+#endregion debug-point live-installer-start
 sleep 2
 if pgrep -x calamares >/dev/null; then
+#region debug-point live-installer-already-running
+    echo "$(date -Is) calamares-already-running" >> /var/log/soclin-live-debug.log 2>&1
+#endregion debug-point live-installer-already-running
     exit 0
 fi
-exec calamares --fullscreen
+#region debug-point live-installer-exec
+echo "$(date -Is) calamares-exec" >> /var/log/soclin-live-debug.log 2>&1
+calamares --fullscreen >> /var/log/soclin-live-debug.log 2>&1
+status=$?
+echo "$(date -Is) calamares-exit=$status" >> /var/log/soclin-live-debug.log 2>&1
+exit "$status"
+#endregion debug-point live-installer-exec
 EOF
 chmod +x /usr/local/bin/soclin-launch-installer
 
 cat <<'EOF' > /usr/local/bin/soclin-live-session
 #!/bin/bash
 set -e
+
+#region debug-point live-session-start
+{
+    echo "==== soclin-live-session ===="
+    date -Is
+    echo "user=$(id -un)"
+    echo "pwd=$(pwd)"
+    echo "desktop_session=${DESKTOP_SESSION:-}"
+    echo "xdg_session_desktop=${XDG_SESSION_DESKTOP:-}"
+    echo "xdg_current_desktop=${XDG_CURRENT_DESKTOP:-}"
+} >> /var/log/soclin-live-debug.log 2>&1
+#endregion debug-point live-session-start
 
 # Uruchamiamy instalator niezależnie od mechanizmu autostartu Openbox,
 # żeby sesja live zawsze od razu pokazywała Calamares.
@@ -124,6 +156,19 @@ chmod 440 /etc/sudoers.d/live-nopasswd
 
 # Start jak w Ubuntu Live: automatyczne wejście tylko do sesji live.
 mkdir -p /etc/sddm.conf.d
+cat <<EOF > /etc/sddm.conf
+[General]
+DisplayServer=x11
+
+[Users]
+RememberLastSession=false
+RememberLastUser=false
+
+[Autologin]
+User=live
+Session=soclin-live.desktop
+Relogin=false
+EOF
 cat <<EOF > /etc/sddm.conf.d/soclin.conf
 [Users]
 RememberLastSession=false
@@ -132,7 +177,7 @@ EOF
 cat <<EOF > /etc/sddm.conf.d/autologin.conf
 [Autologin]
 User=live
-Session=soclin-live
+Session=soclin-live.desktop
 Relogin=false
 EOF
 systemctl enable sddm.service || true
