@@ -1,6 +1,6 @@
 ---
 componentName: soclin
-welcomeStyleCalamares: false
+welcomeStyleCalamares: true
 welcomeExpandingLogo: true
 windowExpanding: fullscreen
 windowPlacement: center
@@ -25,10 +25,10 @@ images:
     productWallpaper: "wallpaper.svg"
     productWelcome: "welcome.svg"
 style:
-    SidebarBackground: "#0f172a"
-    SidebarText: "#cbd5e1"
-    SidebarTextCurrent: "#ffffff"
-    SidebarBackgroundCurrent: "#2563eb"
+    SidebarBackground: "#f3f7fd"
+    SidebarText: "#334155"
+    SidebarTextCurrent: "#0f172a"
+    SidebarBackgroundCurrent: "#dbeafe"
 slideshow:
     - "slideshow/step1.svg"
     - "slideshow/step2.svg"

@@ -29,7 +29,7 @@ apt-get install -y --no-install-recommends linux-image-generic linux-headers-gen
 locale-gen en_US.UTF-8
 update-locale LANG=en_US.UTF-8
 
-# 2. Instalacja desktopowego środowiska live z normalnym ekranem logowania.
+# 2. Instalacja minimalnego środowiska live dla sesji instalatora.
 # Pakiety video/input są dodane jawnie, bo `--no-install-recommends` potrafi
 # zostawić zbyt okrojony X.Org i wtedy display manager nie wstaje.
 apt-get install -y --no-install-recommends xserver-xorg xserver-xorg-video-all xserver-xorg-input-all \
@@ -126,10 +126,26 @@ set -e
 } >> /var/log/soclin-live-debug.log 2>&1
 #endregion debug-point live-session-start
 
-# Uruchamiamy instalator niezależnie od mechanizmu autostartu Openbox,
-# żeby sesja live zawsze od razu pokazywała Calamares.
-/usr/local/bin/soclin-launch-installer >/var/log/soclin-launch-installer.log 2>&1 &
-exec openbox-session
+# Openbox działa tylko jako lekki WM dla Calamares. Sam instalator trzymamy
+# na pierwszym planie, żeby po starcie ISO nie było widać zwykłego pulpitu.
+export DESKTOP_SESSION=soclin-live
+export XDG_SESSION_DESKTOP=soclin-live
+export XDG_CURRENT_DESKTOP=soclin-live
+
+openbox-session >/var/log/soclin-openbox.log 2>&1 &
+openbox_pid=$!
+echo "$(date -Is) openbox-pid=$openbox_pid" >> /var/log/soclin-live-debug.log 2>&1
+sleep 1
+
+set +e
+/usr/local/bin/soclin-launch-installer >/var/log/soclin-launch-installer.log 2>&1
+status=$?
+set -e
+
+kill "$openbox_pid" >/dev/null 2>&1 || true
+wait "$openbox_pid" 2>/dev/null || true
+echo "$(date -Is) live-session-exit=$status" >> /var/log/soclin-live-debug.log 2>&1
+exit "$status"
 EOF
 chmod +x /usr/local/bin/soclin-live-session
 
@@ -139,6 +155,7 @@ cat <<'EOF' > /usr/share/xsessions/soclin-live.desktop
 Name=soclin Live
 Comment=soclin live installer session
 Exec=/usr/local/bin/soclin-live-session
+TryExec=/usr/local/bin/soclin-live-session
 Type=Application
 DesktopNames=soclin-live
 EOF
@@ -166,50 +183,29 @@ RememberLastUser=false
 
 [Autologin]
 User=live
-Session=soclin-live.desktop
+Session=soclin-live
 Relogin=false
 EOF
-cat <<EOF > /etc/sddm.conf.d/soclin.conf
+cat <<EOF > /etc/sddm.conf.d/00-soclin-live.conf
+[General]
+DisplayServer=x11
+
 [Users]
 RememberLastSession=false
 RememberLastUser=false
-EOF
-cat <<EOF > /etc/sddm.conf.d/autologin.conf
+
 [Autologin]
 User=live
-Session=soclin-live.desktop
+Session=soclin-live
 Relogin=false
 EOF
 systemctl enable sddm.service || true
 systemctl set-default graphical.target || true
 
-mkdir -p /home/live/.config/openbox /home/live/.config/autostart /home/live/Desktop
-cat <<'EOF' > /home/live/.config/openbox/autostart
-/usr/local/bin/soclin-launch-installer &
-EOF
-cat <<'EOF' > /home/live/.config/autostart/soclin-installer.desktop
-[Desktop Entry]
-Type=Application
-Name=Start soclin Installer
-Exec=/usr/local/bin/soclin-launch-installer
-Terminal=false
-X-GNOME-Autostart-enabled=true
-EOF
 cat <<'EOF' > /home/live/.dmrc
 [Desktop]
 Session=soclin-live
 EOF
-cat <<'EOF' > /home/live/Desktop/Install-soclin.desktop
-[Desktop Entry]
-Type=Application
-Name=Install soclin
-Comment=Launch the soclin installer
-Exec=/usr/local/bin/soclin-launch-installer
-Icon=system-software-install
-Terminal=false
-Categories=System;
-EOF
-chmod +x /home/live/Desktop/Install-soclin.desktop
 chown -R live:live /home/live
 
 # Wyłączenie sprawdzania sum kontrolnych na starcie (psuje boot customowego ISO)

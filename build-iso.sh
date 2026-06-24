@@ -1,46 +1,78 @@
 #!/bin/bash
-set -euo pipefail
+set -ex
 
-# Budujemy proste ISO, które bootuje bezpośrednio do oficjalnego
-# graficznego Debian Installer, bez sesji live i bez Calamares.
+# Zmienne środowiskowe
 export DEBIAN_FRONTEND=noninteractive
-export ISO_NAME="soclin-debian-installer"
+export ISO_NAME="soclin"
 export WORKDIR="$(pwd)/iso_build"
+export ROOTFS="$WORKDIR/chroot"
 export ISO_DIR="$WORKDIR/iso"
 export DATE
 DATE="$(date +%Y%m%d)"
 
-export DEBIAN_SUITE="${DEBIAN_SUITE:-stable}"
-export DEBIAN_MIRROR="${DEBIAN_MIRROR:-https://deb.debian.org/debian}"
-export INSTALLER_BASE="${DEBIAN_MIRROR}/dists/${DEBIAN_SUITE}/main/installer-amd64/current/images/netboot/gtk/debian-installer/amd64"
-
+# 1. Przygotowanie folderów
 rm -rf "$WORKDIR"
-mkdir -p "$ISO_DIR/boot/grub" "$ISO_DIR/install.amd"
+mkdir -p "$ROOTFS"
+mkdir -p "$ISO_DIR/casper"
+mkdir -p "$ISO_DIR/boot/grub"
 
-echo "=== Pobieranie Debian Installer (${DEBIAN_SUITE}) ==="
-wget -qO "$ISO_DIR/install.amd/linux" "${INSTALLER_BASE}/linux"
-wget -qO "$ISO_DIR/install.amd/initrd.gz" "${INSTALLER_BASE}/initrd.gz"
+# 2. Budowa bazowego systemu live na Ubuntu Noble
+echo "=== Instalowanie bazowego systemu Noble ==="
+debootstrap --arch=amd64 noble "$ROOTFS" http://archive.ubuntu.com/ubuntu/
 
-cat <<'EOF' > "$ISO_DIR/boot/grub/grub.cfg"
-set default=0
+# Zamontowanie systemów plików wewnątrz chroot
+mount --bind /dev "$ROOTFS/dev"
+mount -t proc proc "$ROOTFS/proc"
+mount -t sysfs sysfs "$ROOTFS/sys"
+mount -t devpts devpts "$ROOTFS/dev/pts"
+
+# 3. Kopiowanie skryptu instalacyjnego i konfiguracji do chroot
+cp chroot-setup.sh "$ROOTFS/root/"
+chmod +x "$ROOTFS/root/chroot-setup.sh"
+cp -r config "$ROOTFS/root/"
+
+echo "=== Uruchamianie chroot-setup.sh ==="
+chroot "$ROOTFS" /bin/bash /root/chroot-setup.sh
+
+# Sprzątanie wewnątrz
+rm -rf "$ROOTFS/root/chroot-setup.sh" "$ROOTFS/root/config"
+
+# Odmontowanie
+umount "$ROOTFS/dev/pts"
+umount "$ROOTFS/sys"
+umount "$ROOTFS/proc"
+umount "$ROOTFS/dev"
+
+# 4. Kernel i Initrd
+echo "=== Przygotowanie bootowania ==="
+cp "$ROOTFS/boot/vmlinuz-"* "$ISO_DIR/boot/vmlinuz" || cp "$ROOTFS/boot/vmlinuz" "$ISO_DIR/boot/vmlinuz"
+cp "$ROOTFS/boot/initrd.img-"* "$ISO_DIR/boot/initrd.img" || cp "$ROOTFS/boot/initrd.img" "$ISO_DIR/boot/initrd.img"
+
+# 5. Generowanie SquashFS
+echo "=== Kompresja do SquashFS ==="
+mksquashfs "$ROOTFS" "$ISO_DIR/casper/filesystem.squashfs" -comp xz -wildcards -e boot/vmlinuz* boot/initrd.img*
+
+sleep 2
+printf "$(du -sx --block-size=1 "$ROOTFS" | cut -f1)" > "$ISO_DIR/casper/filesystem.size"
+
+# 6. GRUB config
+cat <<EOF > "$ISO_DIR/boot/grub/grub.cfg"
+set default="0"
 set timeout=0
 set timeout_style=hidden
-
-menuentry "soclin Debian Installer" {
-    linux /install.amd/linux auto=true priority=medium language=pl country=PL locale=pl_PL.UTF-8 keyboard-configuration/xkb-keymap=pl hostname=soclin domain=local quiet ---
-    initrd /install.amd/initrd.gz
+menuentry "soclin" {
+    linux /boot/vmlinuz boot=casper username=live hostname=soclin quiet splash ---
+    initrd /boot/initrd.img
 }
-
-menuentry "soclin Debian Installer (safe graphics)" {
-    linux /install.amd/linux auto=true priority=medium language=pl country=PL locale=pl_PL.UTF-8 keyboard-configuration/xkb-keymap=pl hostname=soclin domain=local nomodeset quiet ---
-    initrd /install.amd/initrd.gz
+menuentry "soclin (Safe Graphics)" {
+    linux /boot/vmlinuz boot=casper nomodeset username=live hostname=soclin quiet splash ---
+    initrd /boot/initrd.img
 }
 EOF
 
-echo "=== Generowanie sum kontrolnych ==="
+# 7. Budowanie pliku ISO
+echo "=== Generowanie pliku ISO ==="
 (cd "$ISO_DIR" && find . -type f -not -name md5sum.txt -print0 | xargs -0 md5sum > md5sum.txt)
-
-echo "=== Budowanie ISO ==="
 grub-mkrescue -o "${ISO_NAME}-${DATE}.iso" "$ISO_DIR"
 
 echo "=== Gotowe: ${ISO_NAME}-${DATE}.iso ==="
